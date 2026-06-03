@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مراجعة الكيمياء العامة - الامتحانات الثلاثة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent1: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --gold: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --danger: #ef4444;
+    --s1: #00d4ff;
+    --s2: #7c3aed;
+    --s3: #10b981;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BG GRID */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HEADER */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,14,26,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+  }
+
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    gap: 16px;
+  }
+
+  .logo {
+    font-family: 'Tajawal', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    white-space: nowrap;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--surface);
+    padding: 5px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    padding: 7px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    background: transparent;
+    color: var(--muted);
+    transition: all .2s;
+    white-space: nowrap;
+  }
+
+  .tab-btn.active {
+    color: #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,.4);
+  }
+
+  .tab-btn[data-tab="s1"].active { background: var(--s1); color: #000; }
+  .tab-btn[data-tab="s2"].active { background: var(--s2); }
+  .tab-btn[data-tab="s3"].active { background: var(--s3); color: #000; }
+  .tab-btn[data-tab="mcq"].active { background: var(--gold); color: #000; }
+
+  /* SEARCH */
+  .search-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  #search {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 16px 8px 36px;
+    color: var(--text);
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    width: 200px;
+    outline: none;
+    transition: border-color .2s, width .3s;
+    direction: rtl;
+  }
+
+  #search:focus { border-color: var(--accent1); width: 240px; }
+  #search::placeholder { color: var(--muted); }
+
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  /* MAIN */
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 40px 0 32px;
+    margin-bottom: 32px;
+  }
+
+  .hero h1 {
+    font-family: 'Tajawal', sans-serif;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .hero h1 span {
+    background: linear-gradient(135deg, var(--accent1) 0%, var(--accent2) 50%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .stat-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .stat-chip .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  /* SECTION */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-badge {
+    padding: 6px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .section-title {
+    font-family: 'Tajawal', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  .section-count {
+    margin-right: auto;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* PARTS */
+  .part-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 32px 0 16px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .part-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* QUESTION CARD */
+  .q-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    transition: border-color .2s, transform .15s;
+  }
+
+  .q-card:hover { border-color: rgba(0,212,255,0.3); transform: translateY(-1px); }
+
+  .q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 20px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .q-num {
+    min-width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .q-text {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+
+  .q-toggle {
+    min-width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all .2s;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .q-card.open .q-toggle {
+    transform: rotate(180deg);
+    background: rgba(0,212,255,0.15);
+    border-color: var(--accent1);
+    color: var(--accent1);
+  }
+
+  /* ANSWER */
+  .q-answer {
+    display: none;
+    border-top: 1px solid var(--border);
+    padding: 20px;
+    background: var(--surface2);
+  }
+
+  .q-card.open .q-answer { display: block; }
+
+  .answer-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent3);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .answer-label::before {
+    content: '✓';
+    width: 18px;
+    height: 18px;
+    background: rgba(16,185,129,0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--accent3);
+  }
+
+  .answer-text {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #cbd5e1;
+  }
+
+  /* MCQ OPTIONS */
+  .mcq-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .mcq-opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    font-size: 14px;
+    transition: all .15s;
+  }
+
+  .mcq-opt.correct {
+    background: rgba(16,185,129,0.12);
+    border-color: var(--accent3);
+    color: #6ee7b7;
+  }
+
+  .mcq-opt .opt-letter {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  .mcq-opt.correct .opt-letter {
+    background: var(--accent3);
+    color: #000;
+  }
+
+  /* FORMULA */
+  .formula {
+    background: rgba(0,212,255,0.06);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: 10px 0;
+    font-size: 14px;
+    font-family: 'Courier New', monospace;
+    color: var(--accent1);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* COLORS per scenario */
+  .s1 .q-num { background: rgba(0,212,255,0.15); color: var(--s1); }
+  .s2 .q-num { background: rgba(124,58,237,0.15); color: var(--s2); }
+  .s3 .q-num { background: rgba(16,185,129,0.15); color: var(--s3); }
+  .mcq-section .q-num { background: rgba(245,158,11,0.15); color: var(--gold); }
+
+  .badge-s1 { background: rgba(0,212,255,0.15); color: var(--s1); border: 1px solid rgba(0,212,255,0.3); }
+  .badge-s2 { background: rgba(124,58,237,0.15); color: #a78bfa; border: 1px solid rgba(124,58,237,0.3); }
+  .badge-s3 { background: rgba(16,185,129,0.15); color: var(--s3); border: 1px solid rgba(16,185,129,0.3); }
+  .badge-mcq { background: rgba(245,158,11,0.15); color: var(--gold); border: 1px solid rgba(245,158,11,0.3); }
+
+  /* SCROLL TOP */
+  #scrollTop {
+    position: fixed;
+    bottom: 28px;
+    left: 28px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--accent2);
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 99;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+    transition: transform .2s;
+  }
+
+  #scrollTop:hover { transform: translateY(-2px); }
+  #scrollTop.show { display: flex; }
+
+  /* PROGRESS */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent1), var(--accent2), var(--gold));
+    z-index: 200;
+    transition: width .1s;
+  }
+
+  /* EMPTY */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+  /* MOBILE */
+  @media (max-width: 640px) {
+    .header-inner { gap: 8px; }
+    .logo { font-size: 14px; }
+    .tab-btn { padding: 6px 10px; font-size: 12px; }
+    #search { width: 140px; }
+    #search:focus { width: 160px; }
+    .q-text { font-size: 14px; }
+    main { padding: 20px 14px 60px; }
+    .hero { padding: 24px 0 20px; }
+  }
+
+  /* HIGHLIGHT */
+  mark { background: rgba(245,158,11,0.3); color: var(--gold); border-radius: 3px; }
+
+  /* EXPAND ALL BTN */
+  .expand-all {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 16px;
+    color: var(--muted);
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+
+  .expand-all:hover { color: var(--text); border-color: var(--accent1); }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">⚗ كيمياء عامة</div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="s1">سيناريو ١</button>
+      <button class="tab-btn" data-tab="s2">سيناريو ٢</button>
+      <button class="tab-btn" data-tab="s3">سيناريو ٣</button>
+      <button class="tab-btn" data-tab="mcq">MCQ شامل</button>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search" placeholder="ابحث في الأسئلة...">
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>مراجعة <span>الكيمياء العامة</span></h1>
+    <p>الامتحانات الثلاثة كاملة مع الإجابات النموذجية — اضغط على السؤال لعرض الإجابة</p>
+    <div class="stats">
+      <div class="stat-chip"><span class="dot" style="background:var(--s1)"></span> سيناريو ١ — احتمال ٥٠٪</div>
+      <div class="stat-chip"><span class="dot" style="background:var(--s2)"></span> سيناريو ٢ — احتمال ٣٠٪</div>
+      <div class="stat-chip"><span class="dot" style="background:var(--s3)"></span> سيناريو ٣ — احتمال ١٥٪</div>
+      <div class="stat-chip"><span class="dot" style="background:var(--gold)"></span> MCQ — ٣٠ سؤال</div>
+    </div>
+  </div>
+
+  <!-- ==================== SCENARIO 1 ==================== -->
+  <div class="section active s1" id="section-s1">
+    <div class="section-header">
+      <span class="section-badge badge-s1">سيناريو ١</span>
+      <span class="section-title">الامتحان المتوقع ٢٠٢٦</span>
+      <span class="section-count">٧ مقالي + ٣٠ MCQ</span>
+      <button class="expand-all" onclick="expandAll('s1')">فتح الكل</button>
+    </div>
+
+    <div class="part-label">📝 الجزء الأول — مقالي</div>
+
+    <!-- Q1 -->
+    <div class="q-card s1" onclick="toggle(this)">
+      <div class="q-header">
+        <div class="q-num">١</div>
+        <div class="q-text">اشرح كيف تم اكتشاف الإلكترونات والبروتونات والنيوترونات في الذرة (١٠ درجات)</div>
+        <div class="q-toggle">▼</div>
+      </div>
+      <div class="q-answer">
+        <div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          <strong>١) اكتشاف الإلكترون:</strong><br>
+          بدأ كروكس تجارب على أنبوبة زجاجية مفرغة بها كاثود وأنود تحت ضغط منخفض. لاحظ ظهور أشعة مهيطية تنبعث من القطب السالب نحو الموجب، وهي:
+          <ul style="margin: 8px 0 8px 20px; line-height: 2;">
+            <li>تسير في خطوط مستقيمة</li>
+            <li>تسبب توهجاً عند اصطدامها بالأنبوبة</li>
+            <li>تتحرك عجلة صغيرة موضوعة في مسارها</li>
+            <li>تنحرف نحو المجال المغناطيسي الموجب → سالبة الشحنة</li>
+          </ul>
+          استنتج العلماء أنها جسيمات صغيرة سالبة وأطلق عليها طومسون اسم <strong>الإلكترونات</strong>.
+
+          <br><br><strong>٢) اكتشاف البروتون:</strong><br>
+          في تجارب لاحقة على أنابيب كروكس، لاحظ العلماء خروج أشعة موجبة (أشعة القنوات) من الثقوب الموجودة في المصعد. هذه الأشعة:
+          <ul style="margin: 8px 0 8px 20px; line-height: 2;">
+            <li>تسير في الاتجاه المعاكس للأشعة المهيطية</li>
+            <li>تنحرف في المجال المغناطيسي نحو القطب السالب → موجبة</li>
+            <li>كتلتها أكبر بكثير من الإلكترون</li>
+          </ul>
+          سُميت هذه الجسيمات <strong>البروتونات</strong>.
+
+          <br><br><strong>٣) اكتشاف النيوترون (شادويك ١٩٣٢):</strong><br>
+          قصف شادويك البيريليوم بجسيمات ألفا فلاحظ خروج إشعاع لم يتأثر بالمجال الكهربائي ولا المغناطيسي، مما يدل على أنه <strong>نيوترونات</strong> — جسيمات متعادلة الشحنة بكتلة مساوية تقريباً للبروتون.
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="q-card s1" onclick="toggle(this)">
+      <div class="q-header">
+        <div class="q-num">٢</div>
+        <div class="q-text">ما هو المعنى الفيزيائي لأعداد الكم الأربعة؟ واحسب قيمها للإلكترون المنفرد في: 4S↑ , 3d↑ , 4P↑</div>
+        <div class="q-toggle">▼</div>
+      </div>
+      <div class="q-answer">
+        <div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          <strong>أعداد الكم الأربعة:</strong>
+          <ul style="margin: 8px 0 12px 20px; line-height: 2.2;">
+            <li><strong>n (الرئيسي)</strong>: يحدد مستوى الطاقة الرئيسي وبُعد الإلكترون عن النواة. قيمه: 1, 2, 3, ...</li>
+            <li><strong>l (الثانوي)</strong>: يحدد شكل المدار الفرعي. s=0, p=1, d=2, f=3</li>
+            <li><strong>ml (المغناطيسي)</strong>: يحدد اتجاه المدار الفضائي. قيمه: −l إلى +l</li>
+            <li><strong>ms (البرمي)</strong>: يحدد اتجاه دوران الإلكترون. +½ أو −½</li>
+          </ul>
+
+          <div class="formula">
+4S↑  →  n=4 , l=0 , ml=0 , ms=+½
+
+3d↑  →  n=3 , l=2 , ml=(-2,-1,0,+1,+2) , ms=+½
+
+4P↑  →  n=4 , l=1 , ml=(-1,0,+1) , ms=+½
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="q-card s1" onclick="toggle(this)">
+      <div class="q-header">
+        <div class="q-num">٣</div>
+        <div class="q-text">وضح كيف تتغير الصفة الفلزية والسالبية الكهربية خلال الدورة الواحدة والمجموعة الواحدة في الجدول الدوري</div>
+        <div class="q-toggle">▼</div>
+      </div>
+      <div class="q-answer">
+        <div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          <strong>خلال الدورة الواحدة (من اليسار لليمين):</strong>
+          <ul style="margin: 8px 0 12px 20px; line-height: 2;">
+            <li>تزداد عدد البروتونات → تزداد قوة جذب النواة للإلكترونات</li>
+            <li>الصفة الفلزية <strong>تقل</strong> → تزداد اللافلزية</li>
+            <li>السالبية الكهربية <strong>تزداد</strong> (أكبر قيمة عند الفلور)</li>
+          </ul>
+
+          <strong>خلال المجموعة الواحدة (من أعلى لأسفل):</strong>
+          <ul style="margin: 8px 0 8px 20px; line-height: 2;">
+            <li>تزداد عدد الأغلفة الإلكترونية → تضعف قوة جذب النواة</li>
+            <li>الصفة الفلزية <strong>تزداد</strong></li>
+            <li>السالبية الكهربية <strong>تقل</strong></li>
+          </ul>
+
+          <div class="formula">
+الدورة:  فلزية ←←←←← تقل | السالبية →→→→→ تزداد
+المجموعة: فلزية →→→→→ تزداد | السالبية ↓↓↓↓↓ تقل
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="q-card s1" onclick="toggle(this)">
+      <div class="q-header">
+        <div class="q-num">٤</div>
+        <div class="q-text">حدد نوع الرابطة الكيميائية في: NH₄OH , NaCl , CH₃OH , Ca(OH)₂ , H₂O—H₂O</div>
+        <div class="q-toggle">▼</div>
+      </div>
+      <div class="q-answer">
+        <div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          <div class="formula">
+NH₄OH   → رابطة تساهمية (N-H, O-H) + أيونية (NH₄⁺ و OH⁻)
+
+NaCl    → رابطة أيونية (Na⁺ و Cl⁻)
+
+CH₃OH   → رابطة تساهمية (C-H, C-O, O-H)
+
+Ca(OH)₂ → رابطة أيونية (Ca²⁺ و OH⁻) + تساهمية داخل OH⁻
+
+H₂O—H₂O → رابطة هيدروجينية (بين جزيئات الماء)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="q-card s1" onclick="toggle(this)">
+      <div class="q-header">
+        <div class="q-num">٥</div>
+        <div class="q-text">عرّف حالة الاتزان الكيميائي وما تأثير زيادة الضغط ودرجة الحرارة على: N₂(g) + 3H₂(g) ⇌ 2NH₃</div>
+        <div class="q-toggle">▼</div>
+      </div>
+      <div class="q-answer">
+        <div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          <strong>تعريف الاتزان الكيميائي:</strong><br>
+          هو الحالة التي يتشبث فيها معدل التفاعل الأمامي معدل التفاعل العكسي، ويظل تركيز المواد المتفاعلة والناتجة ثابتاً مع الزمن.
+
+          <br><br><div class="formula">N₂(g) + 3H₂(g) ⇌ 2NH₃(g)   ΔH = −92 kJ (طارد للحرارة)</div>
+
+          <strong>تأثير زيادة الضغط:</strong><br>
+          يسير التفاعل في الاتجاه الأمامي (نحو تكوين NH₃) لأن جانب النواتج يحتوي على ٢ مول غاز مقابل ٤ مول في جانب المتفاعلات → يقلل الضغط.
+
+          <br><br><strong>تأثير زيادة درجة الحرارة:</strong><br>
+          التفاعل طارد للحرارة (ΔH سالب) → زيادة الحرارة تسير التفاعل في الاتجاه العكسي (تحلل NH₃) → يقل تركيز الأمونيا.
+        </div>
+      </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="q-card s1" onclick="toggle(this)">
+      <div class="q-header">
+        <div class="q-num">٦</div>
+        <div class="q-text">اكتب معادلة فاندرفال واحسب الضغط الحقيقي لـ 6 مولات H₂ في اسطوانة 10 لتر عند 27°C (a=9.244, b=0.266, R=0.082)</div>
+        <div class="q-toggle">▼</div>
+      </div>
+      <div class="q-answer">
+        <div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          <strong>معادلة فاندرفال للغاز الحقيقي:</strong>
+          <div class="formula">(P + an²/V²)(V − nb) = nRT</div>
+
+          <strong>الحل:</strong>
+          <div class="formula">
+المعطيات: n=6 مول , V=10 L , T=27+273=300 K
+          a=9.244 , b=0.266 , R=0.082
+
+(P + 9.244×6²/10²)(10 − 6×0.266) = 6×0.082×300
+
+(P + 9.244×36/100)(10 − 1.596) = 147.6
+
+(P + 3.327)(8.404) = 147.6
+
+P + 3.327 = 147.6 / 8.404 = 17.563
+
+P = 17.563 − 3.327 ≈ 14.24 atm
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="q-card s1" onclick="toggle(this)">
+      <div class="q-header">
+        <div class="q-num">٧</div>
+        <div class="q-text">ما هي الخواص الجمعية في المحلول؟ واشرح مع الرسم كيف يحدث انخفاض الضغط البخاري عند إذابة مادة صلبة في سائل</div>
+        <div class="q-toggle">▼</div>
+      </div>
+      <div class="q-answer">
+        <div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          <strong>الخواص الجمعية:</strong> هي الخواص التي تعتمد فقط على عدد جزيئات المذاب وليس على طبيعته، وتشمل:
+          <ul style="margin: 8px 0 12px 20px; line-height: 2;">
+            <li>① انخفاض الضغط البخاري</li>
+            <li>② ارتفاع درجة الغليان</li>
+            <li>③ انخفاض درجة التجمد</li>
+            <li>④ الضغط الأسموزي</li>
+          </ul>
+
+          <strong>انخفاض الضغط البخاري:</strong><br>
+          عند إذابة مادة صلبة غير متطايرة في سائل، تحتل جزيئات المذاب جزءاً من سطح السائل مما يقلل من عدد جزيئات المذيب القادرة على التبخر.
+          <div class="formula">
+سطح السائل الخالص:  ~~~~ كل السطح ماء ~~~~ → ضغط بخاري عالٍ
+
+سطح المحلول:  ~~~ ماء ~~● مذاب ~~~ → ضغط بخاري أقل
+
+قانون راولت: P_محلول = X_مذيب × P°_مذيب
+(حيث X = كسر مولي المذيب)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="part-label">🔘 الجزء الثاني — MCQ (٣٠ سؤال)</div>
+
+    <div id="mcq-s1"></div>
+  </div>
+
+  <!-- ==================== SCENARIO 2 ==================== -->
+  <div class="section s2" id="section-s2">
+    <div class="section-header">
+      <span class="section-badge badge-s2">سيناريو ٢</span>
+      <span class="section-title">الجزء الأول — مقالي</span>
+      <span class="section-count">٧ مقالي + ٣٠ MCQ</span>
+      <button class="expand-all" onclick="expandAll('s2')">فتح الكل</button>
+    </div>
+
+    <div class="part-label">📝 الجزء الأول — مقالي</div>
+
+    <div class="q-card s2" onclick="toggle(this)">
+      <div class="q-header"><div class="q-num">١</div>
+        <div class="q-text">اشرح من خلال ظاهرة الطيف المنبعث من الذرة كيف تم اكتشاف التركيب المداري للذرة وتوزيع الإلكترونات داخل المدارات</div>
+        <div class="q-toggle">▼</div></div>
+      <div class="q-answer"><div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          عند تسليط طاقة (حرارة أو كهرباء) على الذرة، يمتص الإلكترون هذه الطاقة وينتقل من المستوى الأساسي إلى مستوى أعلى طاقة (مستوى مثار). عند عودته يطلق الطاقة على شكل ضوء بتردد محدد.<br><br>
+          تحليل هذا الضوء بالمنشور يعطي <strong>طيفاً خطياً</strong> مميزاً لكل عنصر، يدل على أن:
+          <ul style="margin: 8px 0 8px 20px; line-height: 2;">
+            <li>مستويات الطاقة للإلكترونات محددة (مكممة) وليست مستمرة</li>
+            <li>الإلكترونات تتوزع في مدارات (مستويات طاقة) محددة حول النواة</li>
+            <li>كل خط في الطيف يقابل انتقالاً إلكترونياً محدداً بين مستويين</li>
+          </ul>
+          <div class="formula">ΔE = hν = hc/λ</div>
+          هذا ما أسس له بور في نموذجه المداري للذرة.
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card s2" onclick="toggle(this)">
+      <div class="q-header"><div class="q-num">٢</div>
+        <div class="q-text">اذكر أعداد الكم الأربعة واحسب قيمها للإلكترون المنفرد في: 4S↑ , 3d↑ , 4P↑</div>
+        <div class="q-toggle">▼</div></div>
+      <div class="q-answer"><div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          <strong>أعداد الكم الأربعة:</strong> n (رئيسي), l (ثانوي), ml (مغناطيسي), ms (برمي)
+          <div class="formula">
+4S↑  →  n=4 , l(s)=0 , ml=0 , ms=+½
+
+3d↑  →  n=3 , l(d)=2 , ml=(-2,0,2) , ms=+½
+
+4P↑  →  n=4 , l(p)=1 , ml=(-1,0,1) , ms=+½
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card s2" onclick="toggle(this)">
+      <div class="q-header"><div class="q-num">٣</div>
+        <div class="q-text">وضح كيف تتغير الصفة الفلزية والسالبية الكهربية خلال الدورة الواحدة والمجموعة الواحدة</div>
+        <div class="q-toggle">▼</div></div>
+      <div class="q-answer"><div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          <div class="formula">
+الدورة (يسار ← يمين):
+  الصفة الفلزية: تقل ←←←←←
+  السالبية الكهربية: تزداد →→→→→
+
+المجموعة (أعلى ← أسفل):
+  الصفة الفلزية: تزداد ↓↓↓↓↓
+  السالبية الكهربية: تقل ↓↓↓↓↓
+          </div>
+          السبب في الدورة: زيادة عدد البروتونات مع ثبات الأغلفة → قوة جذب أكبر.<br>
+          السبب في المجموعة: زيادة الأغلفة → بُعد الإلكترونات عن النواة → قوة جذب أقل.
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card s2" onclick="toggle(this)">
+      <div class="q-header"><div class="q-num">٤</div>
+        <div class="q-text">حدد نوع الرابطة الكيميائية في: NH₄OH , NaCl , CH₃OH , Ca(OH)₂ , H₂O—H₂O</div>
+        <div class="q-toggle">▼</div></div>
+      <div class="q-answer"><div class="answer-label">الإجابة</div>
+        <div class="answer-text"><div class="formula">
+NH₄OH   → تساهمية (N-H, O-H) + أيونية (NH₄⁺ , OH⁻)
+NaCl    → أيونية
+CH₃OH   → تساهمية
+Ca(OH)₂ → أيونية + تساهمية داخل OH⁻
+H₂O—H₂O → رابطة هيدروجينية
+        </div></div>
+      </div>
+    </div>
+
+    <div class="q-card s2" onclick="toggle(this)">
+      <div class="q-header"><div class="q-num">٥</div>
+        <div class="q-text">عرّف الاتزان الكيميائي وتأثير الضغط ودرجة الحرارة على: N₂(g) + 3H₂(g) ⇌ 2NH₃</div>
+        <div class="q-toggle">▼</div></div>
+      <div class="q-answer"><div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          <strong>الاتزان:</strong> تساوي سرعة التفاعل الأمامي والعكسي مع ثبات التراكيز.<br><br>
+          <strong>زيادة الضغط:</strong> التفاعل ينتج ٢ مول غاز من ٤ مول → الضغط يسير الاتزان للأمام (تكوين NH₃).<br><br>
+          <strong>زيادة الحرارة:</strong> التفاعل ماص للحرارة بالعكس → الاتزان يسير للخلف (تحلل NH₃).
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card s2" onclick="toggle(this)">
+      <div class="q-header"><div class="q-num">٦</div>
+        <div class="q-text">اشرح مع الرسم البياني العلاقة الخطية بين درجة الحرارة والذوبانية لأملاح البوتاسيوم في الماء وكيف يستفاد منها في فصل مخاليط الأملاح</div>
+        <div class="q-toggle">▼</div></div>
+      <div class="q-answer"><div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          تزداد ذوبانية معظم أملاح البوتاسيوم بزيادة درجة الحرارة، لكن بمعدلات مختلفة لكل ملح:
+          <div class="formula">
+KNO₃: ذوبانية عالية جداً تزداد بسرعة مع الحرارة (منحنى حاد)
+KCl:  ذوبانية معتدلة تزداد ببطء (منحنى متدرج)
+          </div>
+          <strong>كيفية فصل الأملاح:</strong>
+          <ol style="margin: 8px 0 8px 20px; line-height: 2.2;">
+            <li>يتم تسخين المحلول حتى تذوب جميع مكوناته</li>
+            <li>ثم يتم التبريد التدريجي</li>
+            <li>الملح الأقل ذوبانية يبدأ بالترسيب أولاً</li>
+            <li>يُفصل هذا الملح باستخرام الترشيح</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card s2" onclick="toggle(this)">
+      <div class="q-header"><div class="q-num">٧</div>
+        <div class="q-text">احسب الضغط داخل اسطوانة سعتها 10 لتر تحتوي على 5 مول O₂ عند 27°C. ماذا يحدث لو ارتفعت الحرارة إلى 67°C؟ (R=0.082)</div>
+        <div class="q-toggle">▼</div></div>
+      <div class="q-answer"><div class="answer-label">الإجابة</div>
+        <div class="answer-text"><div class="formula">
+عند 27°C:   T = 27 + 273 = 300 K
+PV = nRT → P = nRT/V
+P₁ = (5 × 0.082 × 300) / 10 = 123/10 = 12.3 atm
+
+عند 67°C:   T = 67 + 273 = 340 K
+P₂ = (5 × 0.082 × 340) / 10 = 139.4/10 = 13.94 atm
+
+الزيادة في الضغط: ΔP = 13.94 − 12.3 = 1.64 atm
+→ ارتفاع درجة الحرارة يؤدي إلى زيادة الضغط
+        </div></div>
+      </div>
+    </div>
+
+    <div class="part-label">🔘 الجزء الثاني — MCQ</div>
+    <div id="mcq-s2"></div>
+  </div>
+
+  <!-- ==================== SCENARIO 3 ==================== -->
+  <div class="section s3" id="section-s3">
+    <div class="section-header">
+      <span class="section-badge badge-s3">سيناريو ٣</span>
+      <span class="section-title">الجزء الأول — مقالي</span>
+      <span class="section-count">٧ مقالي + ٣٠ MCQ</span>
+      <button class="expand-all" onclick="expandAll('s3')">فتح الكل</button>
+    </div>
+
+    <div class="part-label">📝 الجزء الأول — مقالي</div>
+
+    <div class="q-card s3" onclick="toggle(this)">
+      <div class="q-header"><div class="q-num">١</div>
+        <div class="q-text">اشرح الظواهر العلمية التي أدت إلى اكتشاف كل من الإلكترونات والبروتونات والنيوترونات في الذرة</div>
+        <div class="q-toggle">▼</div></div>
+      <div class="q-answer"><div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          <strong>الإلكترون (كروكس/طومسون):</strong> تجارب أنابيب التفريغ الكهربائي أظهرت أشعة مهيطية سالبة الشحنة تنبعث من الكاثود.<br><br>
+          <strong>البروتون (رذرفورد):</strong> تجربة قصف رقائق الذهب بجسيمات ألفا — بعض الجسيمات ارتدت للخلف مما دل على وجود نواة موجبة صغيرة كثيفة.<br><br>
+          <strong>النيوترون (شادويك ١٩٣٢):</strong> قصف البيريليوم بجسيمات ألفا أطلق إشعاعاً متعادل الشحنة لم يتأثر بالمجالات الكهربائية → النيوترونات.
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card s3" onclick="toggle(this)">
+      <div class="q-header"><div class="q-num">٢</div>
+        <div class="q-text">اذكر أعداد الكم الأربعة واحسب قيمها للإلكترون المنفرد في: 4S↑ , 3p↑ , 3d↑</div>
+        <div class="q-toggle">▼</div></div>
+      <div class="q-answer"><div class="answer-label">الإجابة</div>
+        <div class="answer-text"><div class="formula">
+4S↑  →  n=4 , l=0 , ml=0 , ms=+½
+
+3p↑  →  n=3 , l=1 , ml=(-1,0,+1) , ms=+½
+
+3d↑  →  n=3 , l=2 , ml=(-2,-1,0,+1,+2) , ms=+½
+        </div></div>
+      </div>
+    </div>
+
+    <div class="q-card s3" onclick="toggle(this)">
+      <div class="q-header"><div class="q-num">٣</div>
+        <div class="q-text">اشرح مع الرسم البياني كيف يتغير حجم الذرة والأيون للعناصر خلال الدورة الواحدة والمجموعة الواحدة</div>
+        <div class="q-toggle">▼</div></div>
+      <div class="q-answer"><div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          <strong>خلال الدورة (يسار → يمين):</strong>
+          <ul style="margin: 8px 0 10px 20px; line-height: 2;">
+            <li>تزداد الشحنة النووية مع ثبات عدد الأغلفة</li>
+            <li>حجم الذرة <strong>يقل</strong> (تنجذب الإلكترونات أكثر للنواة)</li>
+          </ul>
+          <strong>خلال المجموعة (أعلى → أسفل):</strong>
+          <ul style="margin: 8px 0 10px 20px; line-height: 2;">
+            <li>تزداد عدد الأغلفة الإلكترونية</li>
+            <li>حجم الذرة <strong>يزداد</strong></li>
+          </ul>
+          <div class="formula">
+الدورة:   Na > Mg > Al > Si > P > S > Cl > Ar   (يقل)
+المجموعة: Li < Na < K < Rb < Cs               (يزداد)
+
+للأيونات:
+  الكاتيون (فقدان إلكترون) → أصغر من الذرة الأصلية
+  الأنيون (كسب إلكترون)   → أكبر من الذرة الأصلية
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card s3" onclick="toggle(this)">
+      <div class="q-header"><div class="q-num">٤</div>
+        <div class="q-text">حدد نوع الرابطة الكيميائية في: NH₄OH , NaCl , CH₃OH , Ca(OH)₂ , H₂O—H₂O</div>
+        <div class="q-toggle">▼</div></div>
+      <div class="q-answer"><div class="answer-label">الإجابة</div>
+        <div class="answer-text"><div class="formula">
+NH₄OH   → تساهمية + أيونية (مختلطة)
+NaCl    → أيونية
+CH₃OH   → تساهمية
+Ca(OH)₂ → أيونية + تساهمية داخل OH⁻
+H₂O—H₂O → رابطة هيدروجينية
+        </div></div>
+      </div>
+    </div>
+
+    <div class="q-card s3" onclick="toggle(this)">
+      <div class="q-header"><div class="q-num">٥</div>
+        <div class="q-text">عرّف الاتزان الكيميائي وتأثير الضغط ودرجة الحرارة على: N₂(g) + 3H₂(g) ⇌ 2NH₃</div>
+        <div class="q-toggle">▼</div></div>
+      <div class="q-answer"><div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          <strong>الاتزان:</strong> تساوي سرعة التفاعل الأمامي والعكسي وثبات التراكيز.<br><br>
+          <strong>زيادة الضغط</strong> → يسير للأمام (نحو NH₃ — أقل مولات غازية).<br>
+          <strong>زيادة الحرارة</strong> → التفاعل طارد للحرارة → يسير للخلف (يتحلل NH₃).
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card s3" onclick="toggle(this)">
+      <div class="q-header"><div class="q-num">٦</div>
+        <div class="q-text">ما الخواص الجمعية في المحلول؟ واشرح مع الرسم كيف يحدث انخفاض الضغط البخاري</div>
+        <div class="q-toggle">▼</div></div>
+      <div class="q-answer"><div class="answer-label">الإجابة</div>
+        <div class="answer-text">
+          <strong>الخواص الجمعية (Colligative Properties):</strong>
+          <ol style="margin: 8px 0 12px 20px; line-height: 2;">
+            <li>انخفاض الضغط البخاري (Vapor Pressure Lowering)</li>
+            <li>ارتفاع درجة الغليان (Boiling Point Elevation)</li>
+            <li>انخفاض درجة التجمد (Freezing Point Depression)</li>
+            <li>الضغط الأسموزي (Osmotic Pressure)</li>
+          </ol>
+          <strong>انخفاض الضغط البخاري:</strong> جزيئات المذاب تشغل جزءاً من سطح السائل وتمنع جزيئات المذيب من التبخر → ينخفض الضغط البخاري للمحلول عن الضغط البخاري للمذيب النقي.
+          <div class="formula">ΔP = X_مذاب × P°_مذيب     (قانون راولت)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card s3" onclick="toggle(this)">
+      <div class="q-header"><div class="q-num">٧</div>
+        <div class="q-text">اكتب معادلة فاندرفال واحسب الضغط الحقيقي لـ 6 مولات H₂ في اسطوانة 10 لتر عند 27°C (a=9.244, b=0.266, R=0.082)</div>
+        <div class="q-toggle">▼</div></div>
+      <div class="q-answer"><div class="answer-label">الإجابة</div>
+        <div class="answer-text"><div class="formula">
+معادلة فاندرفال: (P + an²/V²)(V − nb) = nRT
+
+المعطيات: n=6 , V=10 , T=300 K , a=9.244 , b=0.266
+
+(P + 9.244×36/100)(10 − 6×0.266) = 6×0.082×300
+
+(P + 3.3278)(8.404) = 147.6
+
+P + 3.3278 = 17.563
+
+P ≈ 14.24 atm
+        </div></div>
+      </div>
+    </div>
+
+    <div class="part-label">🔘 الجزء الثاني — MCQ</div>
+    <div id="mcq-s3"></div>
+  </div>
+
+  <!-- ==================== MCQ COMBINED ==================== -->
+  <div class="section mcq-section" id="section-mcq">
+    <div class="section-header">
+      <span class="section-badge badge-mcq">MCQ</span>
+      <span class="section-title">أسئلة الاختيار من متعدد — الامتحان المتوقع</span>
+      <span class="section-count">٣٠ سؤال</span>
+      <button class="expand-all" onclick="expandAll('mcq')">فتح الكل</button>
+    </div>
+    <div id="mcq-combined"></div>
+  </div>
+
+  <div id="empty" class="empty-state" style="display:none">
+    <div class="icon">🔍</div>
+    <p>لا توجد نتائج لهذا البحث</p>
+  </div>
+</main>
+
+<button id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+// ==================== DATA ====================
+const MCQ_DATA = [
+  { q: "Which of the following is a chemical change?", opts: ["3H₂(g) + N₂(g) → 2NH₃(g)", "Dissolving oxygen in water", "Boiling water", "CO₂(s) → CO₂(g)"], ans: 0 },
+  { q: "Perform the operation and express to correct significant figures: 9.04 − 8.23 + 21.954 + 81.0 ÷ 3.1416", opts: ["33.03", "33.0", "33.04", "33.029"], ans: 1 },
+  { q: "Identify a pure metal element:", opts: ["steel", "mercury", "carbon", "silicon oxide"], ans: 1 },
+  { q: "In which physical state is molecular/atomic attraction the strongest?", opts: ["liquid", "Solid", "gas", "plasma"], ans: 1 },
+  { q: "Which of the following is a heterogeneous mixture?", opts: ["Air", "sea water", "blood", "iron-copper alloy"], ans: 2 },
+  { q: "Which of the following is a homogeneous mixture?", opts: ["blood", "mixture of oil and water", "milk", "solution of ethanol and water"], ans: 3 },
+  { q: "Which of the following is an extensive property?", opts: ["density", "color", "enthalpy", "temperature"], ans: 2 },
+  { q: "Which of the following is an intensive property?", opts: ["atomic mass", "volume", "length", "melting point"], ans: 3 },
+  { q: "Convert 550 nm to kilometer:", opts: ["5.50×10⁻⁷", "5.50×10⁻⁹", "5.50×10⁻¹⁰", "5.50×10⁹"], ans: 2 },
+  { q: "Which of the following is an SI unit?", opts: ["celsius", "joule", "kilometers", "gram"], ans: 1 },
+  { q: "In which compound do you find both covalent and ionic bonds?", opts: ["KCl", "CH₃OH", "H₂O", "NH₄NO₃"], ans: 3 },
+  { q: "A sample of metal heated from 27°C to 45°C. Temperature change in Kelvin is:", opts: ["273 K", "18 K", "300 K", "318 K"], ans: 1 },
+  { q: "Which combination of elements yields an ionic bonded compound?", opts: ["sulfur and oxygen", "phosphorus and chlorine", "carbon and oxygen", "sodium and bromine"], ans: 3 },
+  { q: "Atomic masses in the periodic table are relative to:", opts: ["carbon-12 = 12.0000", "oxygen-16 = 16.0000", "hydrogen-1 = 1.0000", "Avogadro's number"], ans: 0 },
+  { q: "The law that states 'total mass of substances does not change in a chemical reaction' is:", opts: ["definite composition", "atom combination", "conservation of mass", "multiple proportions"], ans: 2 },
+  { q: "Radioactivity is defined as:", opts: ["Spontaneous emission of radiation", "induced emission of radiation", "emission only of Alpha particle", "emission only of Alpha and Beta particles"], ans: 0 },
+  { q: "The definition of Mole is:", opts: ["atomic weight of elements by grams", "Avogadro's number of particles", "formula weight by grams", "molecular weight by grams"], ans: 1 },
+  { q: "In C₂H₅OH(l) + O₂(g) → CO₂(g) + H₂O(l), the coefficient of H₂O is:", opts: ["2", "1", "3", "4"], ans: 2 },
+  { q: "Mass in grams for 2.0×10²¹ molecules of P₂O₅?", opts: ["0.47", "3.32×10⁻³", "0.1", "3.32×10⁻⁴"], ans: 0 },
+  { q: "When 225 g Fe₂O₃ react with excess CO, how many moles of iron are formed? [Fe₂O₃ + 3CO → 2Fe + 3CO₂]", opts: ["178.3", "0.32", "3.2 (≈2.82)", "1.6"], ans: 2 },
+  { q: "A 2.78 mg hydrocarbon reacted with O₂ giving 6.32 mg CO₂ and 2.58 mg H₂O. Empirical formula?", opts: ["CHO", "C₃H₅O", "C₃H₆O", "C₅H₃O₂"], ans: 2 },
+  { q: "Molecular formula of caffeine (49.48% C, 5.15% H, 28.87% N, MM=194.2)?", opts: ["C₈H₁₂N₅O", "C₈H₁₀N₄O₂", "C₇H₁₂N₅O₂", "C₄H₅N₂O"], ans: 1 },
+  { q: "2Al + 3Cl₂ → 2AlCl₃. 6 moles Al combined with 4 moles Cl₂:", opts: ["Chlorine is in excess", "Components are stoichiometric", "Aluminium is in excess", "The reaction is endothermic"], ans: 2 },
+  { q: "H₂ burns in O₂ to give H₂O. 98.8% yield. Mass of H₂ to give 85.0 kg of H₂O?", opts: ["9.56 kg", "9.44 kg", "9.33 kg", "3.07 kg"], ans: 0 },
+  { q: "A solution composed of a solvent and solute is:", opts: ["a heterogeneous mixture", "homogeneous mixture", "an electrolyte solution", "an acid and base"], ans: 1 },
+  { q: "The definition of molarity is:", opts: ["grams per liter of solution", "moles per liter of solution", "moles per liter of solute", "moles per 1000 grams of solution"], ans: 1 },
+  { q: "How many grams of KBr are in 0.25 L of 0.15 M KBr solution?", opts: ["4.46×10³", "4.46×10⁻³", "0.046", "4.46"], ans: 3 },
+  { q: "What volume (mL) of 18.0 M H₂SO₄ to make 2.0 L of 0.309 M solution?", opts: ["116", "34.3", "11.1", "0.03435"], ans: 1 },
+  { q: "Which aqueous solution is a strong electrolyte?", opts: ["Sugar solution", "dilute HF solution", "acetic acid solution", "dilute HCl solution"], ans: 3 },
+  { q: "Aqueous acetic acid (HC₂H₃O₂) contains a mixture of:", opts: ["HC₂H₃O₂ , C₂H₃O₂⁻ , H⁺", "HC₂H₃O₂ , C₂H₃O₂⁻", "HC₂H₃O₂ , H⁺", "C₂H₃O₂⁻ , H⁺"], ans: 0 }
+];
+
+// ==================== RENDER MCQ ====================
+function renderMCQ(containerId, prefix, data) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  let html = '';
+  data.forEach((item, i) => {
+    const letters = ['A','B','C','D'];
+    const optsHtml = item.opts.map((o, j) => `
+      <div class="mcq-opt${j === item.ans ? ' correct' : ''}">
+        <div class="opt-letter">${letters[j]}</div>
+        <span>${o}</span>
+        ${j === item.ans ? ' ✓' : ''}
+      </div>`).join('');
+
+    html += `
+    <div class="q-card ${prefix}" onclick="toggle(this)" data-search="${item.q.toLowerCase()}">
+      <div class="q-header">
+        <div class="q-num">${i+1}</div>
+        <div class="q-text">${item.q}</div>
+        <div class="q-toggle">▼</div>
+      </div>
+      <div class="q-answer">
+        <div class="mcq-options">${optsHtml}</div>
+      </div>
+    </div>`;
+  });
+  c.innerHTML = html;
+}
+
+renderMCQ('mcq-s1', 's1', MCQ_DATA);
+renderMCQ('mcq-s2', 's2', MCQ_DATA);
+renderMCQ('mcq-s3', 's3', MCQ_DATA);
+renderMCQ('mcq-combined', 'mcq-section', MCQ_DATA);
+
+// ==================== TABS ====================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('section-' + btn.dataset.tab).classList.add('active');
+    const q = document.getElementById('search').value;
+    if (q) doSearch(q);
+  });
+});
+
+// ==================== TOGGLE ====================
+function toggle(card) {
+  card.classList.toggle('open');
+}
+
+// ==================== EXPAND ALL ====================
+function expandAll(scope) {
+  const sec = document.getElementById('section-' + scope);
+  const cards = sec.querySelectorAll('.q-card');
+  const allOpen = [...cards].every(c => c.classList.contains('open'));
+  cards.forEach(c => allOpen ? c.classList.remove('open') : c.classList.add('open'));
+}
+
+// ==================== SEARCH ====================
+const searchInput = document.getElementById('search');
+searchInput.addEventListener('input', () => doSearch(searchInput.value));
+
+function doSearch(q) {
+  q = q.toLowerCase().trim();
+  const activeSection = document.querySelector('.section.active');
+  if (!activeSection) return;
+  const cards = activeSection.querySelectorAll('.q-card');
+  let found = 0;
+  cards.forEach(card => {
+    const text = card.querySelector('.q-text').textContent.toLowerCase();
+    const opts = card.querySelector('.q-answer') ? card.querySelector('.q-answer').textContent.toLowerCase() : '';
+    const match = !q || text.includes(q) || opts.includes(q);
+    card.style.display = match ? '' : 'none';
+    if (match) found++;
+    if (match && q) card.classList.add('open');
+  });
+  document.getElementById('empty').style.display = found === 0 ? 'block' : 'none';
+}
+
+// ==================== SCROLL ====================
+const scrollBtn = document.getElementById('scrollTop');
+const progress = document.getElementById('progress');
+
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  progress.style.width = pct + '%';
+  scrollBtn.classList.toggle('show', h.scrollTop > 400);
+}, { passive: true });
+</script>
+</body>
+</html>
