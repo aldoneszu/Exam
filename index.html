@@ -5,6 +5,226 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>الامتحانات المتوقعة 2026 — Mahmoud Gamal</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@400;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, push, update, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getMessaging, getToken, onMessage }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDtyoR3uh3Cb9jPy2nAvw2_4Ine6KVeeaw",
+  authDomain: "adminscriptstarko.firebaseapp.com",
+  databaseURL: "https://adminscriptstarko-default-rtdb.firebaseio.com",
+  projectId: "adminscriptstarko",
+  storageBucket: "adminscriptstarko.appspot.com",
+  messagingSenderId: "310036534754",
+  appId: "1:310036534754:android:ba27e270c322f0164e15bb"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ── DEVICE FINGERPRINT ──
+function getDeviceName(){
+  const ua = navigator.userAgent;
+  let name = "Unknown Device";
+  if(/iPhone/.test(ua))      name="iPhone";
+  else if(/iPad/.test(ua))   name="iPad";
+  else if(/Android/.test(ua)){
+    const m=ua.match(/Android[\s/]([\d.]+);\s*([^)]+)/);
+    name=m?m[2].trim():"Android Device";
+  } else if(/Windows/.test(ua)) name="Windows PC";
+  else if(/Mac/.test(ua))       name="Mac";
+  else if(/Linux/.test(ua))     name="Linux PC";
+  // Add browser
+  let browser="";
+  if(/Chrome/.test(ua)&&!/Edge|OPR/.test(ua)) browser="Chrome";
+  else if(/Firefox/.test(ua)) browser="Firefox";
+  else if(/Safari/.test(ua)&&!/Chrome/.test(ua)) browser="Safari";
+  else if(/Edge/.test(ua)) browser="Edge";
+  return browser?`${name} · ${browser}`:name;
+}
+
+// ── UNIQUE DEVICE KEY ──
+function getOrCreateUID(){
+  let uid=localStorage.getItem("__siteUID");
+  if(!uid){
+    uid="u_"+Date.now()+"_"+Math.random().toString(36).slice(2,8);
+    localStorage.setItem("__siteUID",uid);
+  }
+  return uid;
+}
+
+// ── REGISTER VISIT ──
+async function registerVisit(){
+  const uid=getOrCreateUID();
+  const deviceName=getDeviceName();
+  const now=Date.now();
+  const userRef=ref(db,`visitors/${uid}`);
+  const snap=await get(userRef);
+  if(!snap.exists()){
+    // First time — create record
+    await set(userRef,{
+      deviceName,
+      firstSeen:now,
+      lastSeen:now,
+      visits:1,
+      platform:navigator.platform||"",
+      language:navigator.language||""
+    });
+  } else {
+    // Update last seen + visits count
+    const d=snap.val();
+    await update(userRef,{
+      lastSeen:now,
+      visits:(d.visits||1)+1,
+      deviceName // refresh in case UA changed
+    });
+  }
+  // Show notification if any pending
+  loadNotifications();
+}
+
+// ── NOTIFICATIONS ──
+function loadNotifications(){
+  const nRef=ref(db,"notifications");
+  onValue(nRef,(snap)=>{
+    const container=document.getElementById("notif-container");
+    if(!container)return;
+    container.innerHTML="";
+    if(!snap.exists())return;
+    const list=snap.val();
+    Object.entries(list).reverse().forEach(([k,n])=>{
+      if(!n.active)return;
+      const div=document.createElement("div");
+      div.className="site-notif";
+      div.innerHTML=`<span class="notif-icon">${n.icon||"📢"}</span>
+        <span class="notif-text">${n.text}</span>
+        <button class="notif-close" onclick="this.parentElement.remove()">✕</button>`;
+      container.appendChild(div);
+    });
+  });
+}
+
+// ── ADMIN PANEL ──
+window.__openAdmin=function(){
+  const pw=prompt("🔐 باسورد الأدمن:");
+  if(pw==="794613") showAdmin();
+  else if(pw!==null) alert("❌ باسورد غلط");
+};
+
+async function showAdmin(){
+  // Fetch all visitors
+  const snap=await get(ref(db,"visitors"));
+  const visitors=snap.exists()?snap.val():{};
+  const count=Object.keys(visitors).length;
+
+  // Build table rows
+  function fmt(ts){
+    if(!ts)return"—";
+    const d=new Date(ts);
+    return d.toLocaleDateString("ar-EG")+' '+d.toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"});
+  }
+
+  const rows=Object.entries(visitors).map(([uid,v])=>`
+    <tr>
+      <td>${v.deviceName||"—"}</td>
+      <td>${v.visits||1}</td>
+      <td style="direction:ltr">${fmt(v.firstSeen)}</td>
+      <td style="direction:ltr">${fmt(v.lastSeen)}</td>
+      <td><button class="adm-del-btn" data-uid="${uid}">🗑</button></td>
+    </tr>`).join("");
+
+  // Fetch notifications
+  const nSnap=await get(ref(db,"notifications"));
+  const notifs=nSnap.exists()?nSnap.val():{};
+  const nRows=Object.entries(notifs).map(([k,n])=>`
+    <tr>
+      <td>${n.icon||"📢"}</td>
+      <td>${n.text}</td>
+      <td><button class="adm-del-btn" data-nid="${k}">🗑</button></td>
+    </tr>`).join("");
+
+  const modal=document.createElement("div");
+  modal.id="admin-modal";
+  modal.innerHTML=`
+  <div class="adm-overlay" onclick="if(event.target===this)this.parentElement.remove()">
+    <div class="adm-panel">
+      <div class="adm-header">
+        <span>🛡 لوحة الأدمن</span>
+        <button class="adm-close" onclick="document.getElementById('admin-modal').remove()">✕</button>
+      </div>
+      <div class="adm-body">
+        <!-- Stats -->
+        <div class="adm-stat-row">
+          <div class="adm-stat"><div class="adm-stat-n">${count}</div><div class="adm-stat-l">إجمالي الأجهزة</div></div>
+        </div>
+
+        <!-- Visitors table -->
+        <h3 class="adm-section-title">👥 المستخدمون</h3>
+        <div class="adm-table-wrap">
+          <table class="adm-table">
+            <thead><tr><th>الجهاز</th><th>زيارات</th><th>أول ظهور</th><th>آخر ظهور</th><th></th></tr></thead>
+            <tbody id="adm-visitors-body">${rows||'<tr><td colspan="5" style="text-align:center;color:#64748b">لا يوجد زوار بعد</td></tr>'}</tbody>
+          </table>
+        </div>
+
+        <!-- Send Notification -->
+        <h3 class="adm-section-title">📢 إرسال إشعار للزوار</h3>
+        <div class="adm-notif-form">
+          <input id="adm-notif-icon" placeholder="أيقونة (مثل 🔥)" style="width:70px">
+          <input id="adm-notif-text" placeholder="نص الإشعار..." style="flex:1">
+          <button id="adm-send-notif">إرسال</button>
+        </div>
+
+        <!-- Existing notifications -->
+        ${nRows?`<div class="adm-table-wrap" style="margin-top:10px">
+          <table class="adm-table">
+            <thead><tr><th>أيقونة</th><th>النص</th><th></th></tr></thead>
+            <tbody>${nRows}</tbody>
+          </table>
+        </div>`:''}
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+
+  // Delete visitor
+  modal.querySelectorAll("[data-uid]").forEach(btn=>{
+    btn.addEventListener("click",async()=>{
+      if(!confirm("حذف هذا المستخدم؟"))return;
+      await set(ref(db,`visitors/${btn.dataset.uid}`),null);
+      btn.closest("tr").remove();
+    });
+  });
+
+  // Delete notification
+  modal.querySelectorAll("[data-nid]").forEach(btn=>{
+    btn.addEventListener("click",async()=>{
+      await set(ref(db,`notifications/${btn.dataset.nid}`),null);
+      btn.closest("tr").remove();
+    });
+  });
+
+  // Send notification
+  modal.querySelector("#adm-send-notif").addEventListener("click",async()=>{
+    const icon=modal.querySelector("#adm-notif-icon").value.trim()||"📢";
+    const text=modal.querySelector("#adm-notif-text").value.trim();
+    if(!text){alert("اكتب نص الإشعار");return;}
+    const nRef2=ref(db,"notifications");
+    await push(nRef2,{icon,text,active:true,createdAt:Date.now()});
+    modal.querySelector("#adm-notif-text").value="";
+    alert("✅ تم إرسال الإشعار");
+    document.getElementById("admin-modal").remove();
+    showAdmin();
+  });
+}
+
+// ── RUN ──
+registerVisit();
+</script>
 <style>
 :root{
   --bg:#060912;
@@ -472,10 +692,116 @@ footer{
   .sub-nav{gap:4px}
   .sub-btn{padding:6px 11px;font-size:11px}
 }
+
+/* ── ADMIN BUTTON ── */
+#admin-trigger{
+  position:fixed;bottom:26px;right:26px;
+  width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg,#1e293b,#334155);
+  border:1px solid #475569;
+  color:#94a3b8;font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  z-index:98;box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:all .2s;
+}
+#admin-trigger:hover{color:#e2e8f0;border-color:#64748b;transform:translateY(-2px)}
+
+/* ── NOTIFICATIONS ── */
+#notif-container{
+  position:fixed;top:70px;left:50%;transform:translateX(-50%);
+  z-index:200;display:flex;flex-direction:column;gap:8px;
+  width:min(520px,94vw);pointer-events:none;
+}
+.site-notif{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(15,23,42,.95);
+  border:1px solid rgba(56,189,248,.3);
+  border-radius:12px;padding:10px 16px;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+  pointer-events:all;
+  animation:slideDown .35s ease;
+}
+@keyframes slideDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+.notif-icon{font-size:18px;flex-shrink:0}
+.notif-text{flex:1;font-size:13px;font-weight:600;color:#e2e8f0;line-height:1.5}
+.notif-close{
+  background:none;border:none;color:#64748b;cursor:pointer;
+  font-size:12px;padding:2px 5px;border-radius:5px;
+  transition:color .2s;flex-shrink:0;
+}
+.notif-close:hover{color:#e2e8f0}
+
+/* ── ADMIN MODAL ── */
+.adm-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  z-index:1000;display:flex;align-items:center;justify-content:center;
+  padding:16px;backdrop-filter:blur(4px);
+}
+.adm-panel{
+  background:#0f172a;border:1px solid #1e293b;
+  border-radius:16px;width:min(720px,100%);
+  max-height:88vh;display:flex;flex-direction:column;
+  box-shadow:0 24px 80px rgba(0,0,0,.7);
+  overflow:hidden;
+}
+.adm-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid #1e293b;
+  background:#0c1220;
+  font-family:'Tajawal',sans-serif;font-size:16px;font-weight:800;color:#e2e8f0;
+}
+.adm-close{
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
+  color:#f87171;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px;
+  transition:all .2s;
+}
+.adm-close:hover{background:rgba(239,68,68,.2)}
+.adm-body{padding:16px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+.adm-stat-row{display:flex;gap:10px;flex-wrap:wrap}
+.adm-stat{
+  background:#1e293b;border:1px solid #334155;border-radius:12px;
+  padding:14px 20px;text-align:center;min-width:120px;
+}
+.adm-stat-n{font-size:26px;font-weight:900;color:#38bdf8;font-family:'JetBrains Mono',monospace}
+.adm-stat-l{font-size:11px;color:#64748b;font-weight:600;margin-top:3px}
+.adm-section-title{
+  font-family:'Tajawal',sans-serif;font-size:14px;font-weight:800;
+  color:#94a3b8;letter-spacing:.5px;margin-top:4px;
+}
+.adm-table-wrap{overflow-x:auto;border-radius:10px;border:1px solid #1e293b}
+.adm-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.adm-table thead tr{background:#1e293b}
+.adm-table th{padding:9px 13px;color:#64748b;font-weight:700;text-align:right;white-space:nowrap}
+.adm-table td{padding:9px 13px;border-top:1px solid #0f172a;color:#cbd5e1}
+.adm-table tbody tr:hover{background:rgba(30,41,59,.5)}
+.adm-del-btn{
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);
+  color:#f87171;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:12px;
+  transition:all .2s;
+}
+.adm-del-btn:hover{background:rgba(239,68,68,.25)}
+.adm-notif-form{display:flex;gap:8px;flex-wrap:wrap}
+.adm-notif-form input{
+  background:#1e293b;border:1px solid #334155;border-radius:8px;
+  padding:8px 12px;color:#e2e8f0;font-family:'Cairo',sans-serif;font-size:13px;
+  outline:none;
+}
+.adm-notif-form input:focus{border-color:#38bdf8}
+.adm-notif-form button{
+  background:linear-gradient(135deg,#0369a1,#4f46e5);
+  border:none;border-radius:8px;padding:8px 18px;
+  color:#fff;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;
+  cursor:pointer;white-space:nowrap;transition:opacity .2s;
+}
+.adm-notif-form button:hover{opacity:.85}
 </style>
 </head>
 <body>
 <div id="progress"></div>
+<!-- Notification container -->
+<div id="notif-container"></div>
+<!-- Admin trigger (hidden button bottom-right) -->
+<button id="admin-trigger" title="أدمن" onclick="window.__openAdmin()">🛡</button>
 
 <header>
   <div class="header-wrap">
@@ -1863,4 +2189,5 @@ window.addEventListener('scroll',()=>{
 </script>
 </body>
   </html>
+    
     
