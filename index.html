@@ -116,30 +116,28 @@ window.__openAdmin=function(){
 };
 
 async function showAdmin(){
+  // Fetch all visitors
   const snap=await get(ref(db,"visitors"));
   const visitors=snap.exists()?snap.val():{};
   const count=Object.keys(visitors).length;
-  const today=new Date().toDateString();
-  const todayV=Object.values(visitors).filter(v=>v.lastSeen&&new Date(v.lastSeen).toDateString()===today).length;
-  const totalV=Object.values(visitors).reduce((s,v)=>s+(v.visits||1),0);
 
+  // Build table rows
   function fmt(ts){
     if(!ts)return"—";
     const d=new Date(ts);
     return d.toLocaleDateString("ar-EG")+' '+d.toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"});
   }
 
-  const rows=Object.entries(visitors)
-    .sort((a,b)=>(b[1].lastSeen||0)-(a[1].lastSeen||0))
-    .map(([uid,v])=>`
+  const rows=Object.entries(visitors).map(([uid,v])=>`
     <tr>
       <td>${v.deviceName||"—"}</td>
-      <td style="text-align:center"><b style="color:#38bdf8">${v.visits||1}</b></td>
-      <td style="direction:ltr;font-size:11px">${fmt(v.firstSeen)}</td>
-      <td style="direction:ltr;font-size:11px">${fmt(v.lastSeen)}</td>
+      <td>${v.visits||1}</td>
+      <td style="direction:ltr">${fmt(v.firstSeen)}</td>
+      <td style="direction:ltr">${fmt(v.lastSeen)}</td>
       <td><button class="adm-del-btn" data-uid="${uid}">🗑</button></td>
     </tr>`).join("");
 
+  // Fetch notifications
   const nSnap=await get(ref(db,"notifications"));
   const notifs=nSnap.exists()?nSnap.val():{};
   const nRows=Object.entries(notifs).map(([k,n])=>`
@@ -155,23 +153,17 @@ async function showAdmin(){
   <div class="adm-overlay" onclick="if(event.target===this)this.parentElement.remove()">
     <div class="adm-panel">
       <div class="adm-header">
-        <span>🛡 لوحة الأدمن — Mahmoud Gamal</span>
+        <span>🛡 لوحة الأدمن</span>
         <button class="adm-close" onclick="document.getElementById('admin-modal').remove()">✕</button>
       </div>
       <div class="adm-body">
+        <!-- Stats -->
         <div class="adm-stat-row">
           <div class="adm-stat"><div class="adm-stat-n">${count}</div><div class="adm-stat-l">إجمالي الأجهزة</div></div>
-          <div class="adm-stat"><div class="adm-stat-n" style="color:#34d399">${totalV}</div><div class="adm-stat-l">إجمالي الزيارات</div></div>
-          <div class="adm-stat"><div class="adm-stat-n" style="color:#fbbf24">${todayV}</div><div class="adm-stat-l">زيارات اليوم</div></div>
         </div>
 
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
-          <span style="background:#0c4a6e;border:1px solid #0284c7;border-radius:8px;padding:4px 12px;font-size:11px;color:#93c5fd">⚗ كيمياء — ٧×٣ أسئلة + ٣٠ MCQ</span>
-          <span style="background:#2e1065;border:1px solid #7c3aed;border-radius:8px;padding:4px 12px;font-size:11px;color:#d8b4fe">📊 إحصاء + ⚙ ميكانيكا — ٣ امتحانات</span>
-          <span style="background:#14532d;border:1px solid #16a34a;border-radius:8px;padding:4px 12px;font-size:11px;color:#86efac">🐾 الحيوان — ٥٠ MCQ + ٥٠ T/F</span>
-        </div>
-
-        <h3 class="adm-section-title">👥 المستخدمون (مرتبون بآخر ظهور)</h3>
+        <!-- Visitors table -->
+        <h3 class="adm-section-title">👥 المستخدمون</h3>
         <div class="adm-table-wrap">
           <table class="adm-table">
             <thead><tr><th>الجهاز</th><th>زيارات</th><th>أول ظهور</th><th>آخر ظهور</th><th></th></tr></thead>
@@ -179,6 +171,7 @@ async function showAdmin(){
           </table>
         </div>
 
+        <!-- Send Notification -->
         <h3 class="adm-section-title">📢 إرسال إشعار للزوار</h3>
         <div class="adm-notif-form">
           <input id="adm-notif-icon" placeholder="أيقونة (مثل 🔥)" style="width:70px">
@@ -186,15 +179,13 @@ async function showAdmin(){
           <button id="adm-send-notif">إرسال</button>
         </div>
 
-        ${nRows?`<h3 class="adm-section-title" style="margin-top:2px">📋 الإشعارات الحالية</h3><div class="adm-table-wrap">
+        <!-- Existing notifications -->
+        ${nRows?`<div class="adm-table-wrap" style="margin-top:10px">
           <table class="adm-table">
             <thead><tr><th>أيقونة</th><th>النص</th><th></th></tr></thead>
             <tbody>${nRows}</tbody>
           </table>
         </div>`:''}
-
-        <h3 class="adm-section-title" style="color:#f87171">⚠ منطقة الخطر</h3>
-        <button id="adm-clear-all" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:8px;padding:8px 16px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700">🗑 حذف جميع المستخدمين</button>
       </div>
     </div>
   </div>`;
@@ -229,16 +220,6 @@ async function showAdmin(){
     document.getElementById("admin-modal").remove();
     showAdmin();
   });
-
-  // Clear all visitors
-  const clrBtn=modal.querySelector("#adm-clear-all");
-  if(clrBtn) clrBtn.addEventListener("click",async()=>{
-    if(!confirm("⚠️ هتحذف كل المستخدمين؟ مينفعش ترجع!"))return;
-    await set(ref(db,"visitors"),null);
-    alert("✅ تم حذف جميع المستخدمين");
-    document.getElementById("admin-modal").remove();
-    showAdmin();
-  });
 }
 
 // ── RUN ──
@@ -268,8 +249,6 @@ registerVisit();
   --stat-b:#6d28d9;
   --mech-a:#fb923c;
   --mech-b:#c2410c;
-  --bio-a:#4ade80;
-  --bio-b:#16a34a;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -363,8 +342,68 @@ header{
 .nav-btn[data-tab="chem"].active .dot{background:var(--c1)}
 .nav-btn[data-tab="exam"].active{background:linear-gradient(135deg,#2e1065,#5b21b6);border-color:#7c3aed}
 .nav-btn[data-tab="exam"].active .dot{background:var(--c2)}
+/* BIO NAV */
 .nav-btn[data-tab="bio"].active{background:linear-gradient(135deg,#14532d,#15803d);border-color:#16a34a}
-.nav-btn[data-tab="bio"].active .dot{background:var(--bio-a)}
+.nav-btn[data-tab="bio"].active .dot{background:#4ade80}
+/* BIO SUB BTNS */
+.sub-btn[data-sub="bio-mcq"].active{background:linear-gradient(135deg,#14532d,#15803d)}
+.sub-btn[data-sub="bio-tf"].active{background:linear-gradient(135deg,#064e3b,#065f46)}
+.sub-btn[data-sub="bio-quiz"].active{background:linear-gradient(135deg,#7c2d12,#c2410c)}
+/* BIO CARDS */
+.qcard.bi .qnum{background:rgba(74,222,128,.12);color:#4ade80}
+.qcard.bi.open{border-color:rgba(74,222,128,.3)}
+.qcard.bi .ans-tag{color:#4ade80}
+.qcard.bi.open .qtoggle{background:rgba(74,222,128,.12);border-color:rgba(74,222,128,.4);color:#4ade80}
+.bkw{color:#fbbf24;font-weight:900}
+.tf-true{display:inline-flex;align-items:center;gap:6px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.35);color:#4ade80;border-radius:8px;padding:5px 14px;font-weight:700;font-size:13px}
+.tf-false{display:inline-flex;align-items:center;gap:6px;background:rgba(251,113,133,.12);border:1px solid rgba(251,113,133,.35);color:#f87171;border-radius:8px;padding:5px 14px;font-weight:700;font-size:13px}
+/* QUIZ STYLES */
+#bio-quiz{padding:0 0 40px}
+.quiz-wrap{max-width:700px;margin:0 auto;padding:0 4px}
+.quiz-start-screen{text-align:center;padding:40px 20px}
+.quiz-start-screen h2{font-size:1.5rem;font-weight:900;color:#4ade80;margin-bottom:8px}
+.quiz-start-screen p{color:var(--muted);margin-bottom:24px;font-size:.9rem}
+.quiz-config{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:24px}
+.quiz-config select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:.85rem;outline:none;cursor:pointer}
+.quiz-config select:focus{border-color:#4ade80}
+.btn-start{background:linear-gradient(135deg,#15803d,#16a34a);color:#fff;border:none;border-radius:10px;padding:12px 32px;font-family:'Cairo',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:.2s}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(74,222,128,.3)}
+.quiz-progress-bar{height:4px;background:var(--surface2);border-radius:4px;margin-bottom:20px;overflow:hidden}
+.quiz-progress-fill{height:100%;background:linear-gradient(90deg,#4ade80,#22c55e);border-radius:4px;transition:width .4s ease}
+.quiz-counter{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;font-size:.8rem;color:var(--muted)}
+.quiz-counter .qc-num{font-weight:700;color:#4ade80;font-size:.9rem}
+.quiz-counter .qc-score{background:var(--surface2);padding:3px 10px;border-radius:20px}
+.quiz-q-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
+.quiz-q-text{font-size:.95rem;font-weight:600;line-height:1.6;color:var(--text);margin-bottom:16px}
+.quiz-opts{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:.85rem;font-weight:600;color:var(--text);text-align:right;transition:.18s;display:flex;align-items:center;gap:10px}
+.quiz-opt:hover:not(.selected):not(.disabled){border-color:#4ade80;color:#4ade80;transform:translateX(-2px)}
+.quiz-opt.correct{background:rgba(74,222,128,.12);border-color:#4ade80;color:#4ade80}
+.quiz-opt.wrong{background:rgba(251,113,133,.12);border-color:#f87171;color:#f87171}
+.quiz-opt.disabled{cursor:default;pointer-events:none}
+.quiz-opt .opt-letter{width:26px;height:26px;border-radius:50%;border:1px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:900;flex-shrink:0}
+.quiz-nav{display:flex;justify-content:flex-end;margin-top:14px}
+.btn-next{background:linear-gradient(135deg,#15803d,#16a34a);color:#fff;border:none;border-radius:8px;padding:9px 22px;font-family:'Cairo',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;opacity:0;pointer-events:none;transition:.2s}
+.btn-next.show{opacity:1;pointer-events:all}
+.btn-next:hover{transform:translateY(-1px)}
+.quiz-result{text-align:center;padding:30px 20px;background:var(--surface);border:1px solid var(--border);border-radius:14px}
+.quiz-result .res-score{font-size:3rem;font-weight:900;margin:10px 0}
+.quiz-result .res-label{font-size:1rem;color:var(--muted);margin-bottom:20px}
+.quiz-result .res-stats{display:flex;justify-content:center;gap:20px;margin-bottom:24px;flex-wrap:wrap}
+.quiz-result .res-stat{background:var(--surface2);border-radius:10px;padding:10px 20px;font-size:.85rem}
+.quiz-result .res-stat span{display:block;font-size:1.3rem;font-weight:900;margin-bottom:2px}
+.res-correct{color:#4ade80}
+.res-wrong{color:#f87171}
+.quiz-review{margin-top:20px;text-align:right}
+.quiz-review h3{font-size:.9rem;color:var(--muted);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.rev-item{background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:8px;border-right:3px solid var(--border)}
+.rev-item.rev-ok{border-right-color:#4ade80}
+.rev-item.rev-bad{border-right-color:#f87171}
+.rev-item .rev-q{font-size:.8rem;color:var(--muted);margin-bottom:6px}
+.rev-item .rev-your{font-size:.82rem;margin-bottom:3px}
+.rev-item .rev-ans{font-size:.82rem;font-weight:700;color:#4ade80}
+.btn-retry{background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;border:none;border-radius:10px;padding:11px 28px;font-family:'Cairo',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;margin-top:8px;transition:.2s}
+.btn-retry:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(99,102,241,.3)}
 
 /* search */
 .search-area{position:relative}
@@ -456,17 +495,6 @@ main{max-width:1280px;margin:0 auto;padding:32px 20px 100px}
 .sub-btn[data-sub="e2"].active,.sub-btn[data-sub="s2"].active{background:linear-gradient(135deg,#6d28d9,#a21caf)}
 .sub-btn[data-sub="e3"].active,.sub-btn[data-sub="s3"].active{background:linear-gradient(135deg,#0f766e,#0369a1)}
 .sub-btn[data-sub="mcq"].active{background:linear-gradient(135deg,#92400e,#b45309)}
-.sub-btn[data-sub="bio-mcq"].active{background:linear-gradient(135deg,#14532d,#15803d)}
-.sub-btn[data-sub="bio-tf"].active{background:linear-gradient(135deg,#064e3b,#065f46)}
-/* BIO cards */
-.qcard.bi .qnum{background:rgba(74,222,128,.12);color:var(--bio-a)}
-.qcard.bi.open{border-color:rgba(74,222,128,.3)}
-.qcard.bi .ans-tag{color:#4ade80}
-.qcard.bi .ans-tag::before{background:rgba(74,222,128,.15);color:#4ade80}
-.qcard.bi.open .qtoggle{background:rgba(74,222,128,.12);border-color:rgba(74,222,128,.4);color:var(--bio-a)}
-.bkw{color:#fbbf24;font-weight:900}
-.tf-true{display:inline-flex;align-items:center;gap:6px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.35);color:#4ade80;border-radius:8px;padding:5px 14px;font-weight:700;font-size:13px}
-.tf-false{display:inline-flex;align-items:center;gap:6px;background:rgba(251,113,133,.12);border:1px solid rgba(251,113,133,.35);color:#f87171;border-radius:8px;padding:5px 14px;font-weight:700;font-size:13px}
 
 /* ── SECTION ── */
 .section{display:none}
@@ -1425,7 +1453,7 @@ Mo = 18 + [3/(3+1)] × 2 = 18+1.5 = 19.5</div>
             <div class="qtext">إذا كانت فئة Q₃ هي (37−40) وكان n=40، f₁=30، f₂=35، فـ Q₃ يساوي</div>
             <div class="qtoggle">▾</div></div>
           <div class="q-ans"><div class="ans-tag">الإجابة</div>
-            <div class="ans-body"><span class="correct-pill">✓ (أ) 37</span>
+ <div class="ans-body"><span class="correct-pill">✓ (أ) 37</span>
               <div class="code-stat">Q₃ = 37 + [(30−30)/5] × 3 = 37</div>
             </div></div>
         </div>
@@ -2077,35 +2105,36 @@ Rmax = v₀²/g = 3600/9.8 ≈ 367.3 m ✓ (الزاوية 45° تعطي أقص�
 
 </div><!-- /panel-exam -->
 
-<!-- ═══════════════════════════════════════════
+<!-- ══════════════════════════════════════════════
      PANEL: BIO
-═══════════════════════════════════════════ -->
+══════════════════════════════════════════════ -->
 <div class="panel" id="panel-bio">
 
   <div class="hero">
     <div class="hero-badge">
-      <span class="badge-dot" style="background:var(--bio-a)"></span>
+      <span class="badge-dot" style="background:#4ade80"></span>
       الحيوان — 2026
     </div>
-    <h1>مراجعة <span style="background:linear-gradient(135deg,var(--bio-a),#22c55e,#86efac);-webkit-background-clip:text;-webkit-text-fill-color:transparent">علم الحيوان</span></h1>
-    <p>أسئلة متوقعة — ٥٠ MCQ + ٥٠ صح وغلط · الكلمات المفتاحية مميزة بالأصفر · اضغط على أي سؤال لعرض الإجابة</p>
+    <h1>مراجعة <span style="background:linear-gradient(135deg,#4ade80,#22c55e,#86efac);-webkit-background-clip:text;-webkit-text-fill-color:transparent">علم الحيوان</span></h1>
+    <p>أسئلة متوقعة — ٥٠ MCQ + ٥٠ صح وغلط + اختبار تفاعلي مع خلط الأسئلة</p>
     <div class="chips">
       <div class="chip"><span class="cdot" style="background:#4ade80"></span>MCQ — ٥٠ سؤال</div>
       <div class="chip"><span class="cdot" style="background:#22c55e"></span>صح وغلط — ٥٠ سؤال</div>
-      <div class="chip"><span class="cdot" style="background:#86efac"></span>إجمالي — ١٠٠ سؤال</div>
+      <div class="chip"><span class="cdot" style="background:#fb923c"></span>اختبر نفسك — تفاعلي</div>
     </div>
   </div>
 
   <div class="sub-nav">
-    <button class="sub-btn active" data-sub="bio-mcq">⚡ MCQ — 50 سؤال</button>
-    <button class="sub-btn" data-sub="bio-tf">✅ صح وغلط — 50 سؤال</button>
+    <button class="sub-btn active" data-sub="bio-mcq">⚡ MCQ</button>
+    <button class="sub-btn" data-sub="bio-tf">✅ صح وغلط</button>
+    <button class="sub-btn" data-sub="bio-quiz">🎯 اختبر نفسك</button>
   </div>
 
-  <!-- BIO MCQ -->
+  <!-- MCQ -->
   <div class="section active" id="bio-mcq">
     <div class="wm">© Mahmoud Gamal El-Saeed · 01013091169 · جميع الحقوق محفوظة</div>
     <div class="sec-head">
-      <span class="sec-label" style="color:var(--bio-a)">أسئلة الاختيار من متعدد</span>
+      <span class="sec-label" style="color:#4ade80">أسئلة الاختيار من متعدد</span>
       <span class="sec-desc">٥٠ سؤال — الكلمات المفتاحية <span class="bkw">بالأصفر</span></span>
       <span class="sec-count">50 سؤال</span>
       <button class="expand-btn" onclick="expandAll('bio-mcq')">⊞ فتح الكل</button>
@@ -2113,16 +2142,22 @@ Rmax = v₀²/g = 3600/9.8 ≈ 367.3 m ✓ (الزاوية 45° تعطي أقص�
     <div id="bio-mcq-wrap"></div>
   </div>
 
-  <!-- BIO T/F -->
+  <!-- T/F -->
   <div class="section" id="bio-tf">
     <div class="wm">© Mahmoud Gamal El-Saeed · 01013091169 · جميع الحقوق محفوظة</div>
     <div class="sec-head">
       <span class="sec-label" style="color:#22c55e">صح وغلط</span>
-      <span class="sec-desc">٥٠ سؤال — الإجابة ظاهرة مباشرة</span>
+      <span class="sec-desc">٥٠ سؤال</span>
       <span class="sec-count">50 سؤال</span>
       <button class="expand-btn" onclick="expandAll('bio-tf')">⊞ فتح الكل</button>
     </div>
     <div id="bio-tf-wrap"></div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="section" id="bio-quiz">
+    <div class="wm">© Mahmoud Gamal El-Saeed · 01013091169 · جميع الحقوق محفوظة</div>
+    <div id="quiz-root"></div>
   </div>
 
 </div><!-- /panel-bio -->
@@ -2224,10 +2259,10 @@ document.querySelectorAll('.sub-btn').forEach(b=>{
     b.classList.add('active');
     const sub=b.dataset.sub;
     par.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-    // bio has direct IDs; chem=c+sub; exam=e+sub
-    let target=document.getElementById(sub)
-               ||document.getElementById('c'+sub)
-               ||document.getElementById('e'+sub);
+    // bio IDs are direct; chem=c+sub; exam=e+sub
+    const target=document.getElementById(sub)
+                ||document.getElementById('c'+sub)
+                ||document.getElementById('e'+sub);
     if(target)target.classList.add('active');
     const q=document.getElementById('search').value;
     if(q)doSearch(q);
@@ -2256,7 +2291,7 @@ function doSearch(q){
   const cards=sec.querySelectorAll('.qcard');
   let n=0;
   cards.forEach(c=>{
-    const t=c.querySelector('.qtext').textContent.toLowerCase();
+    const t=c.querySelector('.qtext')?c.querySelector('.qtext').textContent.toLowerCase():'';
     const a=c.querySelector('.q-ans')?c.querySelector('.q-ans').textContent.toLowerCase():'';
     const ok=!q||t.includes(q)||a.includes(q);
     c.style.display=ok?'':'none';
@@ -2280,56 +2315,56 @@ window.addEventListener('scroll',()=>{
 // BIO DATA
 // ══════════════════════════════════════════
 const BIO_MCQ=[
-  {n:1,q:"<b class='bkw'>Histology</b> is defined as the microscopic study of:",a:"B) Tissues and organs"},
-  {n:2,q:"Which <b class='bkw'>germ layer</b> gives rise to the <b class='bkw'>epidermis</b> and the <b class='bkw'>nervous system</b>?",a:"C) Ectoderm"},
-  {n:3,q:"The type of epithelium found in the <b class='bkw'>urinary bladder</b> that allows for <b class='bkw'>stretching</b> is:",a:"C) Transitional Epithelium"},
-  {n:4,q:"The most abundant protein in the human body, found in <b class='bkw'>connective tissue fibers</b>, is:",a:"C) Collagen"},
-  {n:5,q:"Which cell type in connective tissue is responsible for producing <b class='bkw'>fibers and ground substance</b>?",a:"C) Fibroblasts"},
-  {n:6,q:"<b class='bkw'>Cartilage</b> is characterized by having a rubbery matrix produced by:",a:"B) Chondroblasts"},
-  {n:7,q:"<b class='bkw'>Skeletal muscle</b> is distinguished by being:",a:"B) Voluntary and striated"},
-  {n:8,q:"The basic functional unit of the <b class='bkw'>nervous system</b> is the:",a:"B) Neuron"},
-  {n:9,q:"In a neuron, <b class='bkw'>Nissl bodies</b> are primarily located in the:",a:"B) Cell body (Perikaryon)"},
-  {n:10,q:"The phase of the cell cycle where <b class='bkw'>DNA replication</b> occurs is:",a:"C) S phase"},
-  {n:11,q:"During which phase of mitosis do <b class='bkw'>sister chromatids</b> separate and move to opposite poles?",a:"C) Anaphase"},
-  {n:12,q:"The goal of <b class='bkw'>meiosis</b> is to produce daughter cells that are:",a:"B) Genetically unique and haploid"},
-  {n:13,q:"<b class='bkw'>Crossing-over</b>, which increases genetic diversity, occurs during:",a:"C) Prophase I (Pachytene)"},
-  {n:14,q:"The building blocks of <b class='bkw'>DNA</b> are:",a:"B) Nucleotides"},
-  {n:15,q:"In the DNA double helix, <b class='bkw'>Adenine (A)</b> always pairs with:",a:"C) Thymine (T)"},
-  {n:16,q:"The <b class='bkw'>Central Dogma</b> of molecular biology describes the flow of information as:",a:"C) DNA → RNA → Protein"},
-  {n:17,q:"Which organelle is known as the <b class='bkw'>'powerhouse of the cell'</b>?",a:"C) Mitochondria"},
-  {n:18,q:"<b class='bkw'>Ribosomes</b> are primarily responsible for the synthesis of:",a:"C) Proteins"},
-  {n:19,q:"The <b class='bkw'>largest organelle</b> in a eukaryotic cell, containing genetic material, is the:",a:"B) Nucleus"},
-  {n:20,q:"Which organelle contains <b class='bkw'>acid hydrolases</b> for intracellular digestion?",a:"C) Lysosomes"},
-  {n:21,q:"<b class='bkw'>Hematology</b> is the study of:",a:"C) Blood and its disorders"},
-  {n:22,q:"Which component makes up approximately <b class='bkw'>55%</b> of the total blood volume?",a:"D) Plasma"},
-  {n:23,q:"<b class='bkw'>Red blood cells (Erythrocytes)</b> are unique because they lack a:",a:"C) Nucleus"},
-  {n:24,q:"The normal <b class='bkw'>lifespan</b> of a healthy human red blood cell is about:",a:"C) 120 days"},
-  {n:25,q:"Anemia characterized by RBCs that are <b class='bkw'>small and pale</b> is classified as:",a:"C) Microcytic Hypochromic"},
-  {n:26,q:"<b class='bkw'>Pernicious anemia</b> is caused by a deficiency in:",a:"C) Vitamin B12"},
-  {n:27,q:"In <b class='bkw'>sickle cell anemia</b>, the abnormal hemoglobin is called:",a:"C) Hemoglobin S"},
-  {n:28,q:"The main organ responsible for <b class='bkw'>hematopoiesis</b> in adults is the:",a:"C) Red Bone Marrow"},
-  {n:29,q:"<b class='bkw'>Enzymes</b> function as biological catalysts by:",a:"B) Lowering activation energy"},
-  {n:30,q:"The <b class='bkw'>non-protein component</b> tightly bound to an enzyme is called a:",a:"B) Prosthetic group"},
-  {n:31,q:"Which enzyme is used as a diagnostic indicator for <b class='bkw'>acute pancreatitis</b>?",a:"D) All of the above (Lipase, Trypsin, Alpha-Amylase)"},
-  {n:32,q:"<b class='bkw'>Hormones</b> are secreted by ductless glands known as:",a:"B) Endocrine glands"},
-  {n:33,q:"The <b class='bkw'>'Master Gland'</b> that regulates other endocrine glands is the:",a:"C) Anterior Pituitary"},
-  {n:34,q:"Which hormone is synthesized in the <b class='bkw'>hypothalamus</b> but stored in the <b class='bkw'>posterior pituitary</b>?",a:"C) Oxytocin"},
-  {n:35,q:"<b class='bkw'>Taxonomy</b> was founded by:",a:"C) Carolus Linnaeus"},
-  {n:36,q:"The correct <b class='bkw'>hierarchical order</b> of taxonomic ranks is:",a:"C) Domain, Kingdom, Phylum, Class, Order, Family, Genus, Species"},
-  {n:37,q:"In the scientific name <b class='bkw'>'Panthera pardus'</b>, 'Panthera' represents the:",a:"B) Genus"},
-  {n:38,q:"<b class='bkw'>Protozoa</b> are characterized as being:",a:"B) Unicellular eukaryotic organisms"},
-  {n:39,q:"<b class='bkw'>Trypanosoma</b> is a parasite that causes:",a:"B) Sleeping Sickness"},
-  {n:40,q:"The mode of locomotion in <b class='bkw'>Euglena</b> is primarily by:",a:"C) Flagellum"},
-  {n:41,q:"<b class='bkw'>Sponges</b> belong to the Phylum:",a:"B) Porifera"},
-  {n:42,q:"The <b class='bkw'>flagellated cells</b> lining the internal cavities of sponges are called:",a:"C) Amoebocytes"},
-  {n:43,q:"<b class='bkw'>Cnidarians</b> are named after their stinging cells called:",a:"B) Nematocysts / Cnidocytes"},
-  {n:44,q:"An example of a Cnidarian that exhibits <b class='bkw'>alternation of generations</b> is:",a:"B) Obelia"},
-  {n:45,q:"<b class='bkw'>Platyhelminthes</b> are commonly known as:",a:"B) Flatworms"},
-  {n:46,q:"The basic <b class='bkw'>excretory units</b> in flatworms are:",a:"B) Flame cells"},
-  {n:47,q:"<b class='bkw'>Fasciola hepatica</b> commonly inhabits the:",a:"C) Bile ducts of the liver"},
-  {n:48,q:"Which of the following is a <b class='bkw'>'Pork Tapeworm'</b>?",a:"B) Taenia solium"},
-  {n:49,q:"<b class='bkw'>Schistosoma</b> differs from other trematodes because it is:",a:"B) Sexually dimorphic (separate sexes)"},
-  {n:50,q:"The beef tapeworm <b class='bkw'>(Taenia saginata)</b> scolex is described as:",a:"B) Unarmed (hooks absent)"}
+  {n:1,q:"<b class='bkw'>Histology</b> is defined as the microscopic study of:",a:"B) Tissues and organs",opts:["A) Atoms","B) Tissues and organs","C) Celestial bodies","D) Chemical elements"]},
+  {n:2,q:"Which <b class='bkw'>germ layer</b> gives rise to the <b class='bkw'>epidermis</b> and the <b class='bkw'>nervous system</b>?",a:"C) Ectoderm",opts:["A) Endoderm","B) Mesoderm","C) Ectoderm","D) Pachyderm"]},
+  {n:3,q:"The epithelium in the <b class='bkw'>urinary bladder</b> that allows <b class='bkw'>stretching</b> is:",a:"C) Transitional Epithelium",opts:["A) Simple Squamous","B) Stratified Cuboidal","C) Transitional Epithelium","D) Pseudostratified"]},
+  {n:4,q:"The most abundant protein in connective tissue fibers is:",a:"C) Collagen",opts:["A) Elastin","B) Keratin","C) Collagen","D) Hemoglobin"]},
+  {n:5,q:"Which cell produces <b class='bkw'>fibers and ground substance</b> in connective tissue?",a:"C) Fibroblasts",opts:["A) Adipocytes","B) Macrophages","C) Fibroblasts","D) Plasma cells"]},
+  {n:6,q:"<b class='bkw'>Cartilage</b> rubbery matrix is produced by:",a:"B) Chondroblasts",opts:["A) Osteoblasts","B) Chondroblasts","C) Fibroblasts","D) Erythroblasts"]},
+  {n:7,q:"<b class='bkw'>Skeletal muscle</b> is distinguished by being:",a:"B) Voluntary and striated",opts:["A) Involuntary and non-striated","B) Voluntary and striated","C) Involuntary and striated","D) Voluntary and non-striated"]},
+  {n:8,q:"The basic functional unit of the <b class='bkw'>nervous system</b> is the:",a:"B) Neuron",opts:["A) Nephron","B) Neuron","C) Axon hillock","D) Nissl body"]},
+  {n:9,q:"<b class='bkw'>Nissl bodies</b> are primarily located in the:",a:"B) Cell body (Perikaryon)",opts:["A) Axon","B) Cell body (Perikaryon)","C) Myelin sheath","D) Node of Ranvier"]},
+  {n:10,q:"The cell cycle phase where <b class='bkw'>DNA replication</b> occurs:",a:"C) S phase",opts:["A) G1 phase","B) G2 phase","C) S phase","D) M phase"]},
+  {n:11,q:"During which mitosis phase do <b class='bkw'>sister chromatids</b> separate?",a:"C) Anaphase",opts:["A) Prophase","B) Metaphase","C) Anaphase","D) Telophase"]},
+  {n:12,q:"<b class='bkw'>Meiosis</b> produces daughter cells that are:",a:"B) Genetically unique and haploid",opts:["A) Genetically identical and diploid","B) Genetically unique and haploid","C) Genetically identical and haploid","D) Genetically unique and diploid"]},
+  {n:13,q:"<b class='bkw'>Crossing-over</b> occurs during:",a:"C) Prophase I (Pachytene)",opts:["A) Prophase II","B) Metaphase I","C) Prophase I (Pachytene)","D) Anaphase I"]},
+  {n:14,q:"The building blocks of <b class='bkw'>DNA</b> are:",a:"B) Nucleotides",opts:["A) Amino acids","B) Nucleotides","C) Fatty acids","D) Monosaccharides"]},
+  {n:15,q:"<b class='bkw'>Adenine (A)</b> always pairs with:",a:"C) Thymine (T)",opts:["A) Guanine (G)","B) Cytosine (C)","C) Thymine (T)","D) Uracil (U)"]},
+  {n:16,q:"The <b class='bkw'>Central Dogma</b> flow of information:",a:"C) DNA → RNA → Protein",opts:["A) RNA → DNA → Protein","B) Protein → RNA → DNA","C) DNA → RNA → Protein","D) DNA → Protein → RNA"]},
+  {n:17,q:"The <b class='bkw'>'powerhouse of the cell'</b> is:",a:"C) Mitochondria",opts:["A) Golgi apparatus","B) Lysosome","C) Mitochondria","D) Ribosome"]},
+  {n:18,q:"<b class='bkw'>Ribosomes</b> are responsible for synthesis of:",a:"C) Proteins",opts:["A) Lipids","B) Carbohydrates","C) Proteins","D) Nucleic acids"]},
+  {n:19,q:"The <b class='bkw'>largest organelle</b> containing genetic material is the:",a:"B) Nucleus",opts:["A) Vacuole","B) Nucleus","C) Endoplasmic Reticulum","D) Chloroplast"]},
+  {n:20,q:"<b class='bkw'>Acid hydrolases</b> for intracellular digestion are in:",a:"C) Lysosomes",opts:["A) Centrioles","B) Mitochondria","C) Lysosomes","D) Smooth ER"]},
+  {n:21,q:"<b class='bkw'>Hematology</b> is the study of:",a:"C) Blood and its disorders",opts:["A) Hormones","B) Insects","C) Blood and its disorders","D) Fossils"]},
+  {n:22,q:"Which component makes up <b class='bkw'>55%</b> of blood volume?",a:"D) Plasma",opts:["A) Red Blood Cells","B) White Blood Cells","C) Platelets","D) Plasma"]},
+  {n:23,q:"<b class='bkw'>Erythrocytes</b> are unique because they lack a:",a:"C) Nucleus",opts:["A) Cell membrane","B) Cytoplasm","C) Nucleus","D) Hemoglobin"]},
+  {n:24,q:"Normal <b class='bkw'>lifespan</b> of a red blood cell:",a:"C) 120 days",opts:["A) 20 days","B) 60 days","C) 120 days","D) 1 year"]},
+  {n:25,q:"RBCs that are <b class='bkw'>small and pale</b> — anemia type:",a:"C) Microcytic Hypochromic",opts:["A) Normocytic Normochromic","B) Macrocytic Normochromic","C) Microcytic Hypochromic","D) Megaloblastic"]},
+  {n:26,q:"<b class='bkw'>Pernicious anemia</b> is caused by deficiency of:",a:"C) Vitamin B12",opts:["A) Iron","B) Vitamin C","C) Vitamin B12","D) Folic acid"]},
+  {n:27,q:"Abnormal hemoglobin in <b class='bkw'>sickle cell anemia</b>:",a:"C) Hemoglobin S",opts:["A) Hemoglobin A","B) Hemoglobin F","C) Hemoglobin S","D) Hemoglobin C"]},
+  {n:28,q:"Main organ for <b class='bkw'>hematopoiesis</b> in adults:",a:"C) Red Bone Marrow",opts:["A) Liver","B) Spleen","C) Red Bone Marrow","D) Thymus"]},
+  {n:29,q:"<b class='bkw'>Enzymes</b> act as catalysts by:",a:"B) Lowering activation energy",opts:["A) Increasing activation energy","B) Lowering activation energy","C) Changing reaction equilibrium","D) Consuming themselves"]},
+  {n:30,q:"Non-protein component tightly bound to enzyme — <b class='bkw'>Prosthetic group</b>:",a:"B) Prosthetic group",opts:["A) Coenzyme","B) Prosthetic group","C) Apoenzyme","D) Holoenzyme"]},
+  {n:31,q:"Diagnostic indicator for <b class='bkw'>acute pancreatitis</b>:",a:"D) All of the above",opts:["A) Lipase","B) Trypsin","C) Alpha-Amylase","D) All of the above"]},
+  {n:32,q:"<b class='bkw'>Hormones</b> are secreted by ductless glands known as:",a:"B) Endocrine glands",opts:["A) Exocrine glands","B) Endocrine glands","C) Salivary glands","D) Sweat glands"]},
+  {n:33,q:"The <b class='bkw'>'Master Gland'</b> regulating other endocrine glands:",a:"C) Anterior Pituitary",opts:["A) Thyroid","B) Adrenal","C) Anterior Pituitary","D) Pancreas"]},
+  {n:34,q:"Hormone synthesized in <b class='bkw'>hypothalamus</b>, stored in <b class='bkw'>posterior pituitary</b>:",a:"C) Oxytocin",opts:["A) Growth Hormone","B) Insulin","C) Oxytocin","D) Prolactin"]},
+  {n:35,q:"<b class='bkw'>Taxonomy</b> was founded by:",a:"C) Carolus Linnaeus",opts:["A) Aristotle","B) John Ray","C) Carolus Linnaeus","D) Walter Flemming"]},
+  {n:36,q:"Correct <b class='bkw'>hierarchical order</b> of taxonomic ranks:",a:"C) Domain, Kingdom, Phylum, Class, Order, Family, Genus, Species",opts:["A) Domain, Phylum, Kingdom...","B) Kingdom, Domain, Class...","C) Domain, Kingdom, Phylum, Class, Order, Family, Genus, Species","D) Species, Genus, Family..."]},
+  {n:37,q:"In '<b class='bkw'>Panthera pardus</b>', 'Panthera' represents the:",a:"B) Genus",opts:["A) Species","B) Genus","C) Family","D) Class"]},
+  {n:38,q:"<b class='bkw'>Protozoa</b> are characterized as:",a:"B) Unicellular eukaryotic organisms",opts:["A) Multicellular","B) Unicellular eukaryotic organisms","C) Prokaryotic","D) Photosynthetic plants only"]},
+  {n:39,q:"<b class='bkw'>Trypanosoma</b> causes:",a:"B) Sleeping Sickness",opts:["A) Malaria","B) Sleeping Sickness","C) Anemia only","D) Influenza"]},
+  {n:40,q:"Locomotion in <b class='bkw'>Euglena</b> is primarily by:",a:"C) Flagellum",opts:["A) Cilia","B) Pseudopodia","C) Flagellum","D) Tentacles"]},
+  {n:41,q:"<b class='bkw'>Sponges</b> belong to the Phylum:",a:"B) Porifera",opts:["A) Cnidaria","B) Porifera","C) Platyhelminthes","D) Protozoa"]},
+  {n:42,q:"Flagellated cells lining sponge cavities are:",a:"C) Amoebocytes",opts:["A) Cnidocytes","B) Choanocytes","C) Amoebocytes","D) Pinacocytes"]},
+  {n:43,q:"<b class='bkw'>Cnidarians</b> stinging cells are called:",a:"B) Nematocysts / Cnidocytes",opts:["A) Flame cells","B) Nematocysts / Cnidocytes","C) Spicules","D) Coloblasts"]},
+  {n:44,q:"Cnidarian showing <b class='bkw'>alternation of generations</b>:",a:"B) Obelia",opts:["A) Fasciola","B) Obelia","C) Taenia","D) Trypanosoma"]},
+  {n:45,q:"<b class='bkw'>Platyhelminthes</b> are commonly known as:",a:"B) Flatworms",opts:["A) Roundworms","B) Flatworms","C) Segmented worms","D) Ringworms"]},
+  {n:46,q:"Basic <b class='bkw'>excretory units</b> in flatworms:",a:"B) Flame cells",opts:["A) Nephridia","B) Flame cells","C) Malpighian tubules","D) Kidneys"]},
+  {n:47,q:"<b class='bkw'>Fasciola hepatica</b> inhabits the:",a:"C) Bile ducts of the liver",opts:["A) Small intestine","B) Bloodstream","C) Bile ducts of the liver","D) Lungs"]},
+  {n:48,q:"The <b class='bkw'>Pork Tapeworm</b> is:",a:"B) Taenia solium",opts:["A) Taenia saginata","B) Taenia solium","C) Schistosoma mansoni","D) Fasciola gigantica"]},
+  {n:49,q:"<b class='bkw'>Schistosoma</b> differs from trematodes by being:",a:"B) Sexually dimorphic (separate sexes)",opts:["A) Hermaphroditic","B) Sexually dimorphic (separate sexes)","C) Living in snails only","D) Non-parasitic"]},
+  {n:50,q:"<b class='bkw'>Taenia saginata</b> scolex is described as:",a:"B) Unarmed (hooks absent)",opts:["A) Armed with hooks","B) Unarmed (hooks absent)","C) Having 2 suckers","D) Bilateral"]}
 ];
 
 const BIO_TF=[
@@ -2340,62 +2375,58 @@ const BIO_TF=[
   {n:55,q:"<b class='bkw'>Pseudostratified epithelium</b> has all cells reaching the <b class='bkw'>free surface</b>.",a:false},
   {n:56,q:"<b class='bkw'>Connective tissue</b> is the most <b class='bkw'>abundant tissue type</b> in the body.",a:true},
   {n:57,q:"<b class='bkw'>Collagen fibers</b> are also known as <b class='bkw'>yellow fibers</b>.",a:false},
-  {n:58,q:"<b class='bkw'>Adipocytes</b> are specialized cells that store <b class='bkw'>triglycerides</b>.",a:true},
-  {n:59,q:"<b class='bkw'>Cartilage</b> is highly <b class='bkw'>vascularized</b> with many blood vessels.",a:false},
+  {n:58,q:"<b class='bkw'>Adipocytes</b> store <b class='bkw'>triglycerides</b>.",a:true},
+  {n:59,q:"<b class='bkw'>Cartilage</b> is highly <b class='bkw'>vascularized</b>.",a:false},
   {n:60,q:"<b class='bkw'>Cardiac muscle</b> is under <b class='bkw'>voluntary control</b>.",a:false},
-  {n:61,q:"The <b class='bkw'>axon hillock</b> is a region in the neuron <b class='bkw'>devoid of Nissl bodies</b>.",a:true},
-  {n:62,q:"<b class='bkw'>Dendrites</b> carry nerve impulses <b class='bkw'>away from</b> the cell body.",a:false},
+  {n:61,q:"The <b class='bkw'>axon hillock</b> is <b class='bkw'>devoid of Nissl bodies</b>.",a:true},
+  {n:62,q:"<b class='bkw'>Dendrites</b> carry impulses <b class='bkw'>away from</b> the cell body.",a:false},
   {n:63,q:"The <b class='bkw'>cell cycle</b> consists of <b class='bkw'>Interphase</b> and <b class='bkw'>M phase</b>.",a:true},
   {n:64,q:"<b class='bkw'>DNA replication</b> occurs during the <b class='bkw'>G2 phase</b>.",a:false},
-  {n:65,q:"<b class='bkw'>Karyokinesis</b> refers to the division of the <b class='bkw'>cytoplasm</b>.",a:false},
-  {n:66,q:"In <b class='bkw'>mitosis</b>, daughter cells are <b class='bkw'>genetically identical</b> to the parent cell.",a:true},
+  {n:65,q:"<b class='bkw'>Karyokinesis</b> refers to division of the <b class='bkw'>cytoplasm</b>.",a:false},
+  {n:66,q:"In <b class='bkw'>mitosis</b>, daughter cells are <b class='bkw'>genetically identical</b>.",a:true},
   {n:67,q:"<b class='bkw'>Meiosis I</b> is an <b class='bkw'>equatorial division</b>.",a:false},
-  {n:68,q:"<b class='bkw'>Synapsis</b> occurs during the <b class='bkw'>Zygotene</b> stage of Prophase I.",a:true},
+  {n:68,q:"<b class='bkw'>Synapsis</b> occurs during the <b class='bkw'>Zygotene</b> stage.",a:true},
   {n:69,q:"<b class='bkw'>Crossing-over</b> results in <b class='bkw'>genetic diversity</b>.",a:true},
   {n:70,q:"Human <b class='bkw'>somatic cells</b> have <b class='bkw'>23 chromosomes</b>.",a:false},
-  {n:71,q:"<b class='bkw'>Nucleotides</b> are composed of a <b class='bkw'>nitrogen base, sugar, and triphosphate</b>.",a:true},
-  {n:72,q:"<b class='bkw'>Purines</b> include Adenine and Guanine and have a <b class='bkw'>single ring structure</b>.",a:false},
+  {n:71,q:"<b class='bkw'>Nucleotides</b> are composed of nitrogen base, sugar, and triphosphate.",a:true},
+  {n:72,q:"<b class='bkw'>Purines</b> have a <b class='bkw'>single ring structure</b>.",a:false},
   {n:73,q:"<b class='bkw'>RNA</b> is typically <b class='bkw'>double-stranded</b>.",a:false},
-  {n:74,q:"<b class='bkw'>Translation</b> is the process of converting <b class='bkw'>RNA into a protein sequence</b>.",a:true},
-  {n:75,q:"The <b class='bkw'>cell</b> is the smallest basic unit of all <b class='bkw'>living organisms</b>.",a:true},
-  {n:76,q:"<b class='bkw'>Keratinocytes</b> make up about <b class='bkw'>10%</b> of all skin cells.",a:false},
-  {n:77,q:"<b class='bkw'>Red blood cells (RBCs)</b> occupy <b class='bkw'>99.9%</b> of all blood cells.",a:true},
-  {n:78,q:"<b class='bkw'>Mitochondria</b> are power generators that convert nutrients into <b class='bkw'>ATP</b>.",a:true},
+  {n:74,q:"<b class='bkw'>Translation</b> converts <b class='bkw'>RNA into protein</b>.",a:true},
+  {n:75,q:"The <b class='bkw'>cell</b> is the smallest basic unit of living organisms.",a:true},
+  {n:76,q:"<b class='bkw'>Keratinocytes</b> make up about <b class='bkw'>10%</b> of skin cells.",a:false},
+  {n:77,q:"<b class='bkw'>RBCs</b> occupy <b class='bkw'>99.9%</b> of all blood cells.",a:true},
+  {n:78,q:"<b class='bkw'>Mitochondria</b> convert nutrients into <b class='bkw'>ATP</b>.",a:true},
   {n:79,q:"<b class='bkw'>Plant cells</b> have <b class='bkw'>smaller vacuoles</b> than animal cells.",a:false},
-  {n:80,q:"The <b class='bkw'>cell wall</b> is found in both <b class='bkw'>animal and plant cells</b>.",a:false},
+  {n:80,q:"The <b class='bkw'>cell wall</b> is found in both animal and plant cells.",a:false},
   {n:81,q:"<b class='bkw'>Plasma (55%)</b> contains water, proteins, and electrolytes.",a:true},
   {n:82,q:"<b class='bkw'>Serum</b> is plasma that contains all <b class='bkw'>clotting factors</b>.",a:false},
-  {n:83,q:"RBCs get their energy by <b class='bkw'>anaerobic oxidation</b> of glucose.",a:true},
-  {n:84,q:"Normal <b class='bkw'>WBC count</b> ranges from <b class='bkw'>4,000 to 11,000</b> cell/mm³.",a:true},
-  {n:85,q:"<b class='bkw'>Hematopoiesis</b> refers to the formation of <b class='bkw'>blood cellular components</b>.",a:true},
-  {n:86,q:"<b class='bkw'>Iron deficiency</b> is the most common cause of <b class='bkw'>nutritional anemia</b>.",a:true},
-  {n:87,q:"<b class='bkw'>Sickle cell anemia</b> is an infectious disease caught from snails.",a:false},
-  {n:88,q:"<b class='bkw'>Enzymes</b> increase the rate of reaction by <b class='bkw'>raising the activation energy</b>.",a:false},
+  {n:83,q:"RBCs get energy by <b class='bkw'>anaerobic oxidation</b> of glucose.",a:true},
+  {n:84,q:"Normal <b class='bkw'>WBC count</b> is <b class='bkw'>4,000–11,000</b> cell/mm³.",a:true},
+  {n:85,q:"<b class='bkw'>Hematopoiesis</b> = formation of blood cellular components.",a:true},
+  {n:86,q:"<b class='bkw'>Iron deficiency</b> is the most common cause of nutritional anemia.",a:true},
+  {n:87,q:"<b class='bkw'>Sickle cell anemia</b> is infectious and caught from snails.",a:false},
+  {n:88,q:"<b class='bkw'>Enzymes</b> increase reaction rate by <b class='bkw'>raising activation energy</b>.",a:false},
   {n:89,q:"<b class='bkw'>Extreme temperatures</b> can <b class='bkw'>denature enzymes</b>.",a:true},
-  {n:90,q:"The optimum <b class='bkw'>pH</b> for most enzymes is around <b class='bkw'>neutral (7)</b>.",a:true},
+  {n:90,q:"Optimum <b class='bkw'>pH</b> for most enzymes is around <b class='bkw'>neutral (7)</b>.",a:true},
   {n:91,q:"<b class='bkw'>Steroid hormones</b> are synthesized from <b class='bkw'>cholesterol</b>.",a:true},
-  {n:92,q:"The <b class='bkw'>posterior pituitary</b> synthesizes its own hormones, <b class='bkw'>ADH and Oxytocin</b>.",a:false},
-  {n:93,q:"<b class='bkw'>Aristotle</b> is called the <b class='bkw'>'Father of Taxonomy'</b>.",a:false},
-  {n:94,q:"<b class='bkw'>Bilateral symmetry</b> allows for division along a single plane into equal halves.",a:true},
-  {n:95,q:"<b class='bkw'>Protozoans</b> are acellular/unicellular <b class='bkw'>animalcules</b>.",a:true},
-  {n:96,q:"<b class='bkw'>Euglena</b> can perform <b class='bkw'>photosynthesis</b> in the presence of sunlight.",a:true},
-  {n:97,q:"<b class='bkw'>Sponges</b> belong to the subkingdom <b class='bkw'>Eumetazoa</b>.",a:false},
+  {n:92,q:"The <b class='bkw'>posterior pituitary</b> synthesizes ADH and Oxytocin.",a:false},
+  {n:93,q:"<b class='bkw'>Aristotle</b> is the 'Father of Taxonomy'.",a:false},
+  {n:94,q:"<b class='bkw'>Bilateral symmetry</b> allows division into equal halves along one plane.",a:true},
+  {n:95,q:"<b class='bkw'>Protozoans</b> are unicellular animalcules.",a:true},
+  {n:96,q:"<b class='bkw'>Euglena</b> can perform <b class='bkw'>photosynthesis</b> in sunlight.",a:true},
+  {n:97,q:"<b class='bkw'>Sponges</b> belong to subkingdom <b class='bkw'>Eumetazoa</b>.",a:false},
   {n:98,q:"<b class='bkw'>Cnidarians</b> exhibit <b class='bkw'>radial symmetry</b>.",a:true},
-  {n:99,q:"<b class='bkw'>Fasciola gigantica</b> is commonly found in the <b class='bkw'>bile ducts of mammals</b>.",a:true},
-  {n:100,q:"<b class='bkw'>Taenia solium</b> is known as the <b class='bkw'>beef tapeworm</b>.",a:false}
+  {n:99,q:"<b class='bkw'>Fasciola gigantica</b> is found in bile ducts of mammals.",a:true},
+  {n:100,q:"<b class='bkw'>Taenia solium</b> is the beef tapeworm.",a:false}
 ];
 
+// ── BUILD MCQ & TF CARDS ──
 (function buildBio(){
   const mc=document.getElementById('bio-mcq-wrap');
   if(mc) mc.innerHTML=BIO_MCQ.map(m=>`
   <div class="qcard bi" onclick="toggle(this)">
-    <div class="q-head">
-      <div class="qnum">${m.n}</div>
-      <div class="qtext">${m.q}</div>
-      <div class="qtoggle">▾</div>
-    </div>
-    <div class="q-ans">
-      <div class="ans-tag">الإجابة</div>
+    <div class="q-head"><div class="qnum">${m.n}</div><div class="qtext">${m.q}</div><div class="qtoggle">▾</div></div>
+    <div class="q-ans"><div class="ans-tag">الإجابة</div>
       <div class="ans-body"><span class="correct-pill" style="background:rgba(74,222,128,.12);border-color:rgba(74,222,128,.35);color:#4ade80">✓ ${m.a}</span></div>
     </div>
   </div>`).join('');
@@ -2403,18 +2434,158 @@ const BIO_TF=[
   const tf=document.getElementById('bio-tf-wrap');
   if(tf) tf.innerHTML=BIO_TF.map(m=>`
   <div class="qcard bi" onclick="toggle(this)">
-    <div class="q-head">
-      <div class="qnum">${m.n}</div>
-      <div class="qtext">${m.q}</div>
-      <div class="qtoggle">▾</div>
-    </div>
-    <div class="q-ans">
-      <div class="ans-tag">الإجابة</div>
-      <div class="ans-body">
-        <span class="${m.a?'tf-true':'tf-false'}">${m.a?'✓ True — صح':'✗ False — غلط'}</span>
-      </div>
+    <div class="q-head"><div class="qnum">${m.n}</div><div class="qtext">${m.q}</div><div class="qtoggle">▾</div></div>
+    <div class="q-ans"><div class="ans-tag">الإجابة</div>
+      <div class="ans-body"><span class="${m.a?'tf-true':'tf-false'}">${m.a?'✓ True — صح':'✗ False — غلط'}</span></div>
     </div>
   </div>`).join('');
+})();
+
+// ══════════════════════════════════════════
+// QUIZ ENGINE
+// ══════════════════════════════════════════
+(function initQuiz(){
+  const root=document.getElementById('quiz-root');
+  if(!root)return;
+
+  // shuffle helper
+  function shuffle(arr){return [...arr].sort(()=>Math.random()-.5)}
+
+  // letter labels
+  const LETTERS=['A','B','C','D'];
+
+  // quiz state
+  let questions=[], idx=0, score=0, userAnswers=[], mode='all';
+
+  function buildQuestions(m){
+    // MCQ: q text + shuffled options, correct = m.a
+    if(m.opts){
+      const shuffled=shuffle(m.opts);
+      return {q:m.q, opts:shuffled, correct:m.a, origN:m.n};
+    }
+    // T/F: build 2 options
+    return {q:m.q, opts:['True — صح','False — غلط'], correct:m.a?'True — صح':'False — غلط', origN:m.n};
+  }
+
+  function showStart(){
+    root.innerHTML=`
+    <div class="quiz-wrap">
+      <div class="quiz-start-screen">
+        <div style="font-size:3rem;margin-bottom:12px">🎯</div>
+        <h2>اختبر نفسك — الحيوان</h2>
+        <p>الأسئلة هتتخلط كل مرة — اختار وفي الآخر هتعرف نتيجتك</p>
+        <div class="quiz-config">
+          <select id="quiz-mode">
+            <option value="all">الكل (100 سؤال)</option>
+            <option value="mcq">MCQ فقط (50)</option>
+            <option value="tf">صح وغلط فقط (50)</option>
+            <option value="rand20">20 سؤال عشوائي</option>
+            <option value="rand10">10 سؤال سريع</option>
+          </select>
+        </div>
+        <button class="btn-start" onclick="window.__startQuiz()">🚀 ابدأ الاختبار</button>
+      </div>
+    </div>`;
+  }
+
+  window.__startQuiz=function(){
+    mode=document.getElementById('quiz-mode').value;
+    let pool=[];
+    if(mode==='mcq') pool=BIO_MCQ.map(buildQuestions);
+    else if(mode==='tf') pool=BIO_TF.map(buildQuestions);
+    else pool=[...BIO_MCQ,...BIO_TF].map(buildQuestions);
+    pool=shuffle(pool);
+    if(mode==='rand20') pool=pool.slice(0,20);
+    if(mode==='rand10') pool=pool.slice(0,10);
+    questions=pool;
+    idx=0; score=0; userAnswers=[];
+    showQuestion();
+  };
+
+  function showQuestion(){
+    if(idx>=questions.length){showResult();return;}
+    const q=questions[idx];
+    const pct=Math.round((idx/questions.length)*100);
+    root.innerHTML=`
+    <div class="quiz-wrap">
+      <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${pct}%"></div></div>
+      <div class="quiz-counter">
+        <span class="qc-num">سؤال ${idx+1} من ${questions.length}</span>
+        <span class="qc-score">✓ ${score} صح</span>
+      </div>
+      <div class="quiz-q-card">
+        <div class="quiz-q-text">${q.q}</div>
+        <div class="quiz-opts">
+          ${q.opts.map((o,i)=>`
+          <button class="quiz-opt" onclick="window.__pickOpt(this,'${o.replace(/'/g,"\\'")}')">
+            <span class="opt-letter">${LETTERS[i]||'●'}</span>
+            <span>${o}</span>
+          </button>`).join('')}
+        </div>
+        <div class="quiz-nav">
+          <button class="btn-next" id="btn-next" onclick="window.__nextQ()">${idx===questions.length-1?'🏁 عرض النتيجة':'التالي ←'}</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  window.__pickOpt=function(el,chosen){
+    // disable all opts
+    document.querySelectorAll('.quiz-opt').forEach(b=>b.classList.add('disabled'));
+    const q=questions[idx];
+    const isCorrect=chosen===q.correct;
+    // mark correct in green always
+    document.querySelectorAll('.quiz-opt').forEach(b=>{
+      const txt=b.querySelector('span:last-child').textContent;
+      if(txt===q.correct) b.classList.add('correct');
+    });
+    if(!isCorrect) el.classList.add('wrong');
+    if(isCorrect) score++;
+    userAnswers.push({q:q.q, chosen, correct:q.correct, ok:isCorrect});
+    document.getElementById('btn-next').classList.add('show');
+  };
+
+  window.__nextQ=function(){idx++;showQuestion();};
+
+  function showResult(){
+    const total=questions.length;
+    const wrong=total-score;
+    const pct=Math.round((score/total)*100);
+    const emoji=pct>=90?'🏆':pct>=70?'🎉':pct>=50?'💪':'📚';
+    const label=pct>=90?'ممتاز! أنت جاهز':pct>=70?'كويس جداً':pct>=50?'مقبول — ذاكر أكتر':'محتاج مراجعة';
+
+    const reviewHTML=userAnswers.map((a,i)=>`
+    <div class="rev-item ${a.ok?'rev-ok':'rev-bad'}">
+      <div class="rev-q">${i+1}. ${a.q.replace(/<[^>]+>/g,'')}</div>
+      ${!a.ok?`<div class="rev-your" style="color:#f87171">❌ إجابتك: ${a.chosen}</div>`:''}
+      <div class="rev-ans">✓ الصح: ${a.correct}</div>
+    </div>`).join('');
+
+    root.innerHTML=`
+    <div class="quiz-wrap">
+      <div class="quiz-result">
+        <div style="font-size:3rem">${emoji}</div>
+        <div class="res-score" style="color:${pct>=70?'#4ade80':'#f87171'}">${pct}%</div>
+        <div class="res-label">${label}</div>
+        <div class="res-stats">
+          <div class="res-stat"><span class="res-correct">${score}</span>إجابات صح</div>
+          <div class="res-stat"><span class="res-wrong">${wrong}</span>إجابات غلط</div>
+          <div class="res-stat"><span style="color:#38bdf8">${total}</span>إجمالي الأسئلة</div>
+        </div>
+        <button class="btn-retry" onclick="window.__startQuiz()">🔄 إعادة الاختبار بنفس الإعدادات</button>
+        &nbsp;
+        <button class="btn-retry" style="background:linear-gradient(135deg,#14532d,#15803d)" onclick="window.__backToStart()">⚙ تغيير الإعدادات</button>
+        <div class="quiz-review">
+          <h3>📋 مراجعة الإجابات (${wrong} غلط)</h3>
+          ${wrong===0?'<p style="color:#4ade80;text-align:center;padding:20px">🎯 كل الإجابات صح!</p>':reviewHTML}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  window.__backToStart=function(){showStart();};
+
+  showStart();
 })();
 </script>
 </body>
