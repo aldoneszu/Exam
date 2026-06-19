@@ -116,34 +116,59 @@ window.__openAdmin=function(){
 };
 
 async function showAdmin(){
-  // Fetch all visitors
   const snap=await get(ref(db,"visitors"));
   const visitors=snap.exists()?snap.val():{};
-  const count=Object.keys(visitors).length;
+  const vList=Object.entries(visitors);
+  const count=vList.length;
 
-  // Build table rows
+  const nSnap=await get(ref(db,"notifications"));
+  const notifs=nSnap.exists()?nSnap.val():{};
+
+  const today=new Date().toDateString();
+  const todayV=vList.filter(([,v])=>v.lastSeen&&new Date(v.lastSeen).toDateString()===today).length;
+  const totalVisits=vList.reduce((s,[,v])=>s+(v.visits||1),0);
+  const newToday=vList.filter(([,v])=>v.firstSeen&&new Date(v.firstSeen).toDateString()===today).length;
+  const notifCount=Object.keys(notifs).length;
+
+  const topDevice=[...vList].sort((a,b)=>(b[1].visits||1)-(a[1].visits||1))[0];
+  const topName=topDevice?topDevice[1].deviceName||"—":"—";
+  const topVisits=topDevice?topDevice[1].visits||1:0;
+
   function fmt(ts){
     if(!ts)return"—";
     const d=new Date(ts);
-    return d.toLocaleDateString("ar-EG")+' '+d.toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"});
+    const diff=Date.now()-ts;
+    const mins=Math.floor(diff/60000);
+    const hrs=Math.floor(diff/3600000);
+    const days=Math.floor(diff/86400000);
+    const ago=days>0?`منذ ${days} يوم`:hrs>0?`منذ ${hrs} ساعة`:mins>0?`منذ ${mins} دقيقة`:"الآن";
+    return`<span style="font-size:11px;direction:ltr">${d.toLocaleDateString("ar-EG")} ${d.toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"})}</span><br><span style="font-size:10px;color:#64748b">${ago}</span>`;
   }
 
-  const rows=Object.entries(visitors).map(([uid,v])=>`
-    <tr>
-      <td>${v.deviceName||"—"}</td>
-      <td>${v.visits||1}</td>
-      <td style="direction:ltr">${fmt(v.firstSeen)}</td>
-      <td style="direction:ltr">${fmt(v.lastSeen)}</td>
-      <td><button class="adm-del-btn" data-uid="${uid}">🗑</button></td>
-    </tr>`).join("");
+  const sortedV=[...vList].sort((a,b)=>(b[1].lastSeen||0)-(a[1].lastSeen||0));
 
-  // Fetch notifications
-  const nSnap=await get(ref(db,"notifications"));
-  const notifs=nSnap.exists()?nSnap.val():{};
+  const rows=sortedV.map(([uid,v],i)=>{
+    const isToday=v.lastSeen&&new Date(v.lastSeen).toDateString()===today;
+    const isNew=v.firstSeen&&new Date(v.firstSeen).toDateString()===today;
+    return`<tr style="${isToday?'background:rgba(74,222,128,.04)':''}">
+      <td style="text-align:center;color:#64748b;font-size:11px">${i+1}</td>
+      <td>
+        <div style="font-weight:700;font-size:13px">${v.deviceName||"—"}</div>
+        <div style="font-size:10px;color:#64748b">${v.platform||""} · ${v.language||""}</div>
+        ${isNew?'<span style="background:rgba(74,222,128,.15);color:#4ade80;font-size:10px;padding:1px 6px;border-radius:8px;border:1px solid rgba(74,222,128,.3)">جديد اليوم</span>':''}
+      </td>
+      <td style="text-align:center"><b style="color:#38bdf8;font-size:15px">${v.visits||1}</b></td>
+      <td>${fmt(v.firstSeen)}</td>
+      <td>${fmt(v.lastSeen)}</td>
+      <td><button class="adm-del-btn" data-uid="${uid}">🗑</button></td>
+    </tr>`;
+  }).join("");
+
   const nRows=Object.entries(notifs).map(([k,n])=>`
     <tr>
-      <td>${n.icon||"📢"}</td>
+      <td style="text-align:center;font-size:18px">${n.icon||"📢"}</td>
       <td>${n.text}</td>
+      <td><span style="background:${n.active?'rgba(74,222,128,.15)':'rgba(100,116,139,.15)'};color:${n.active?'#4ade80':'#64748b'};padding:2px 8px;border-radius:8px;font-size:11px">${n.active?'نشط':'موقف'}</span></td>
       <td><button class="adm-del-btn" data-nid="${k}">🗑</button></td>
     </tr>`).join("");
 
@@ -151,38 +176,65 @@ async function showAdmin(){
   modal.id="admin-modal";
   modal.innerHTML=`
   <div class="adm-overlay" onclick="if(event.target===this)this.parentElement.remove()">
-    <div class="adm-panel">
+    <div class="adm-panel" style="max-width:820px">
       <div class="adm-header">
-        <span>🛡 لوحة الأدمن</span>
-        <button class="adm-close" onclick="document.getElementById('admin-modal').remove()">✕</button>
+        <span>🛡 لوحة الأدمن — Mahmoud Gamal</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button onclick="window.__refreshAdmin()" style="background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);color:#38bdf8;border-radius:6px;padding:4px 12px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:12px">🔄 تحديث</button>
+          <button class="adm-close" onclick="document.getElementById('admin-modal').remove()">✕</button>
+        </div>
       </div>
       <div class="adm-body">
-        <!-- Stats -->
-        <div class="adm-stat-row">
-          <div class="adm-stat"><div class="adm-stat-n">${count}</div><div class="adm-stat-l">إجمالي الأجهزة</div></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+          <div style="background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:1.8rem;font-weight:900;color:#38bdf8">${count}</div>
+            <div style="font-size:11px;color:#64748b">إجمالي الأجهزة</div>
+          </div>
+          <div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:1.8rem;font-weight:900;color:#4ade80">${totalVisits}</div>
+            <div style="font-size:11px;color:#64748b">إجمالي الزيارات</div>
+          </div>
+          <div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:1.8rem;font-weight:900;color:#fbbf24">${todayV}</div>
+            <div style="font-size:11px;color:#64748b">زيارات اليوم</div>
+          </div>
+          <div style="background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:1.8rem;font-weight:900;color:#a78bfa">${newToday}</div>
+            <div style="font-size:11px;color:#64748b">مستخدمين جدد اليوم</div>
+          </div>
+          <div style="background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.2);border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:1.1rem;font-weight:900;color:#fb923c">${topName}</div>
+            <div style="font-size:11px;color:#64748b">الأكثر زيارة (${topVisits})</div>
+          </div>
+          <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:1.8rem;font-weight:900;color:#f87171">${notifCount}</div>
+            <div style="font-size:11px;color:#64748b">إشعارات نشطة</div>
+          </div>
         </div>
 
-        <!-- Visitors table -->
-        <h3 class="adm-section-title">👥 المستخدمون</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <h3 class="adm-section-title" style="margin:0">👥 المستخدمون (${count})</h3>
+          <button id="adm-clear-all" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:6px;padding:4px 12px;cursor:pointer;font-family:'Cairo',sans-serif;font-size:11px;font-weight:700">🗑 حذف الكل</button>
+        </div>
         <div class="adm-table-wrap">
           <table class="adm-table">
-            <thead><tr><th>الجهاز</th><th>زيارات</th><th>أول ظهور</th><th>آخر ظهور</th><th></th></tr></thead>
-            <tbody id="adm-visitors-body">${rows||'<tr><td colspan="5" style="text-align:center;color:#64748b">لا يوجد زوار بعد</td></tr>'}</tbody>
+            <thead><tr><th>#</th><th>الجهاز</th><th>زيارات</th><th>أول ظهور</th><th>آخر ظهور</th><th></th></tr></thead>
+            <tbody id="adm-visitors-body">${rows||'<tr><td colspan="6" style="text-align:center;color:#64748b;padding:20px">لا يوجد زوار بعد</td></tr>'}</tbody>
           </table>
         </div>
 
-        <!-- Send Notification -->
         <h3 class="adm-section-title">📢 إرسال إشعار للزوار</h3>
         <div class="adm-notif-form">
-          <input id="adm-notif-icon" placeholder="أيقونة (مثل 🔥)" style="width:70px">
+          <input id="adm-notif-icon" placeholder="أيقونة 🔥" style="width:65px">
           <input id="adm-notif-text" placeholder="نص الإشعار..." style="flex:1">
           <button id="adm-send-notif">إرسال</button>
         </div>
 
-        <!-- Existing notifications -->
-        ${nRows?`<div class="adm-table-wrap" style="margin-top:10px">
+        ${nRows?`
+        <h3 class="adm-section-title" style="margin-top:12px">📋 الإشعارات الحالية</h3>
+        <div class="adm-table-wrap">
           <table class="adm-table">
-            <thead><tr><th>أيقونة</th><th>النص</th><th></th></tr></thead>
+            <thead><tr><th>أيقونة</th><th>النص</th><th>الحالة</th><th></th></tr></thead>
             <tbody>${nRows}</tbody>
           </table>
         </div>`:''}
@@ -191,7 +243,6 @@ async function showAdmin(){
   </div>`;
   document.body.appendChild(modal);
 
-  // Delete visitor
   modal.querySelectorAll("[data-uid]").forEach(btn=>{
     btn.addEventListener("click",async()=>{
       if(!confirm("حذف هذا المستخدم؟"))return;
@@ -200,7 +251,6 @@ async function showAdmin(){
     });
   });
 
-  // Delete notification
   modal.querySelectorAll("[data-nid]").forEach(btn=>{
     btn.addEventListener("click",async()=>{
       await set(ref(db,`notifications/${btn.dataset.nid}`),null);
@@ -208,18 +258,29 @@ async function showAdmin(){
     });
   });
 
-  // Send notification
   modal.querySelector("#adm-send-notif").addEventListener("click",async()=>{
     const icon=modal.querySelector("#adm-notif-icon").value.trim()||"📢";
     const text=modal.querySelector("#adm-notif-text").value.trim();
     if(!text){alert("اكتب نص الإشعار");return;}
-    const nRef2=ref(db,"notifications");
-    await push(nRef2,{icon,text,active:true,createdAt:Date.now()});
+    await push(ref(db,"notifications"),{icon,text,active:true,createdAt:Date.now()});
     modal.querySelector("#adm-notif-text").value="";
     alert("✅ تم إرسال الإشعار");
     document.getElementById("admin-modal").remove();
     showAdmin();
   });
+
+  modal.querySelector("#adm-clear-all").addEventListener("click",async()=>{
+    if(!confirm(`⚠️ هتحذف ${count} مستخدم؟ مينفعش ترجع!`))return;
+    await set(ref(db,"visitors"),null);
+    alert("✅ تم حذف جميع المستخدمين");
+    document.getElementById("admin-modal").remove();
+    showAdmin();
+  });
+
+  window.__refreshAdmin=function(){
+    document.getElementById("admin-modal").remove();
+    showAdmin();
+  };
 }
 
 // ── RUN ──
