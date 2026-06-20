@@ -409,6 +409,7 @@ header{
 /* BIO SUB BTNS */
 .sub-btn[data-sub="bio-mcq"].active{background:linear-gradient(135deg,#14532d,#15803d)}
 .sub-btn[data-sub="bio-tf"].active{background:linear-gradient(135deg,#064e3b,#065f46)}
+.sub-btn[data-sub="bio-defs"].active{background:linear-gradient(135deg,#4c1d95,#6d28d9)}
 .sub-btn[data-sub="bio-quiz"].active{background:linear-gradient(135deg,#7c2d12,#c2410c)}
 /* BIO CARDS */
 .qcard.bi .qnum{background:rgba(74,222,128,.12);color:#4ade80}
@@ -979,7 +980,7 @@ footer{
   </div>
 
   <div class="sub-nav">
-    <button class="sub-btn active" data-sub="s1">سيناريو ١</button>
+   <button class="sub-btn active" data-sub="s1">سيناريو ١</button>
     <button class="sub-btn" data-sub="s2">سيناريو ٢</button>
     <button class="sub-btn" data-sub="s3">سيناريو ٣</button>
     <button class="sub-btn" data-sub="mcq">MCQ شامل</button>
@@ -2188,6 +2189,7 @@ Rmax = v₀²/g = 3600/9.8 ≈ 367.3 m ✓ (الزاوية 45° تعطي أقص�
   <div class="sub-nav">
     <button class="sub-btn active" data-sub="bio-mcq">⚡ MCQ</button>
     <button class="sub-btn" data-sub="bio-tf">✅ صح وغلط</button>
+    <button class="sub-btn" data-sub="bio-defs">📖 التعريفات</button>
     <button class="sub-btn" data-sub="bio-quiz">🎯 اختبر نفسك</button>
   </div>
 
@@ -2213,6 +2215,18 @@ Rmax = v₀²/g = 3600/9.8 ≈ 367.3 m ✓ (الزاوية 45° تعطي أقص�
       <button class="expand-btn" onclick="expandAll('bio-tf')">⊞ فتح الكل</button>
     </div>
     <div id="bio-tf-wrap"></div>
+  </div>
+
+  <!-- DEFINITIONS -->
+  <div class="section" id="bio-defs">
+    <div class="wm">© Mahmoud Gamal El-Saeed · 01013091169 · جميع الحقوق محفوظة</div>
+    <div class="sec-head">
+      <span class="sec-label" style="color:#a371f7">التعريفات</span>
+      <span class="sec-desc">٤٤ تعريف — الكلمات المفتاحية <span style="background:rgba(227,168,50,.16);border-bottom:2px solid rgba(227,168,50,.55);color:#e3a832;font-weight:700;padding:0 3px;border-radius:3px">بالأصفر</span></span>
+      <span class="sec-count">44 تعريف</span>
+      <button class="expand-btn" onclick="expandAll('bio-defs')">⊞ فتح الكل</button>
+    </div>
+    <div id="bio-defs-wrap"></div>
   </div>
 
   <!-- QUIZ -->
@@ -2503,6 +2517,78 @@ const BIO_TF=[
 })();
 
 // ══════════════════════════════════════════
+// DEFINITIONS DATA
+// ══════════════════════════════════════════
+const BIO_DEFS=[
+  {c:"Histology",t:"Histology",d:`The study of the <span class='bkw'>tissues of the body</span> and how they are arranged to constitute <span class='bkw'>organs</span>. Known as a <span class='bkw'>visual, colorful science</span>.`},
+  {c:"Histology",t:"Simple Epithelium",d:`Epithelial tissue of a <span class='bkw'>single row/layer of cells</span>. Named by the <span class='bkw'>shape of these cells</span> (squamous, cuboidal, columnar).`},
+  {c:"Histology",t:"Stratified Epithelium",d:`Epithelial tissue of <span class='bkw'>more than one layer of cells</span>. Named by cells on the <span class='bkw'>surface layer</span>.`},
+  {c:"Histology",t:"Pseudostratified Epithelium",d:`A <span class='bkw'>single row of cells</span> not all of the same height — not all reach the <span class='bkw'>free surface</span>. Nuclei at <span class='bkw'>different levels</span>, giving a <span class='bkw'>false impression</span> of stratification.`},
+  {c:"Histology",t:"Transitional Epithelium",d:`Stratified epithelium where surface cells are <span class='bkw'>rounded rather than flat</span>, allowing <span class='bkw'>stretching and distension</span>. Found in the <span class='bkw'>urinary system</span>.`},
+  {c:"Histology",t:"Plasma Cells",d:`Originate from <span class='bkw'>lymphocytes</span>. Primary function: <span class='bkw'>produce antibodies</span> to protect the body.`},
+  {c:"Histology",t:"Mast Cells",d:`<span class='bkw'>Oval-shaped cells</span> found <span class='bkw'>along blood vessels</span>. Secrete <span class='bkw'>Heparin</span> and <span class='bkw'>Histamine</span>.`},
+  {c:"Histology",t:"Adipocytes (Fat Cells)",d:`Store <span class='bkw'>triglycerides</span> for <span class='bkw'>energy production</span> and <span class='bkw'>thermal insulation</span>.`},
+  {c:"Histology",t:"Fibroblasts",d:`<span class='bkw'>Most common cell</span> in connective tissue. Produce <span class='bkw'>structural fibers</span> (collagen, elastic) and <span class='bkw'>ground substance</span>.`},
+  {c:"Histology",t:"Macrophages",d:`Large <span class='bkw'>phagocytic cells</span> from blood <span class='bkw'>monocytes</span>. Function: <span class='bkw'>phagocytosis</span> of foreign bodies and bacteria.`},
+  {c:"Histology",t:"Collagen Fibers (White Fibers)",d:`<span class='bkw'>Most abundant protein fibers</span> in the body. <span class='bkw'>Thick, strong</span>, resistant to <span class='bkw'>pulling forces</span>.`},
+  {c:"Histology",t:"Elastic Fibers (Yellow Fibers)",d:`Can <span class='bkw'>stretch and recoil</span> like a rubber band. Provide <span class='bkw'>elasticity</span> to skin and arteries.`},
+  {c:"Histology",t:"Reticular Fibers",d:`<span class='bkw'>Fine, thin collagen fibers</span> coated with <span class='bkw'>glycoproteins</span>. Form <span class='bkw'>stroma</span> of spleen and lymph nodes.`},
+  {c:"Histology",t:"Areolar Tissue",d:`Loose connective tissue with <span class='bkw'>irregular arrangement</span> of fibers in <span class='bkw'>abundant ground substance</span>.`},
+  {c:"Histology",t:"Cartilage",d:`<span class='bkw'>Avascular</span> supportive tissue with a <span class='bkw'>rubbery matrix</span>. Produced by chondroblasts → <span class='bkw'>chondrocytes</span>. Relies on <span class='bkw'>diffusion</span> for nutrition.`},
+  {c:"Histology",t:"Compact Bone (Dense Bone)",d:`Dense bone with <span class='bkw'>no spaces visible to the naked eye</span>. Forms the <span class='bkw'>protective outer shell</span> of all bones.`},
+  {c:"Histology",t:"Spongy Bone (Cancellous Bone)",d:`<span class='bkw'>Porous, lattice-like</span> bone. Found in <span class='bkw'>heads of long bones</span>, always <span class='bkw'>covered by compact bone</span>.`},
+  {c:"Nervous Tissue",t:"Cell Body (Perikaryon)",d:`<span class='bkw'>Central part of a neuron</span> with <span class='bkw'>nucleus and organelles</span>. Found in <span class='bkw'>gray matter</span> (CNS) and <span class='bkw'>ganglia</span> (PNS).`},
+  {c:"Nervous Tissue",t:"Nissl Bodies",d:`Granules that <span class='bkw'>stain with basic dyes</span>. Indicate active <span class='bkw'>protein synthesis</span> in the neuron.`},
+  {c:"Nervous Tissue",t:"Neurofibrils",d:`Threads visible with <span class='bkw'>silver nitrate</span> staining. Made of <span class='bkw'>microtubules and neurofilaments</span>.`},
+  {c:"Nervous Tissue",t:"Dendrites",d:`<span class='bkw'>Short, highly branched</span> extensions. Contain <span class='bkw'>Nissl bodies</span>. Conduct impulses <span class='bkw'>towards</span> cell body.`},
+  {c:"Nervous Tissue",t:"Axon",d:`<span class='bkw'>Single, long, thin</span> projection from the <span class='bkw'>axon hillock</span> (no Nissl bodies). Conducts impulses <span class='bkw'>away</span> from cell body.`},
+  {c:"Cell Cycle",t:"Cell Cycle",d:`Regulated sequence producing <span class='bkw'>two daughter cells</span> with <span class='bkw'>identical chromosome complements</span>.`},
+  {c:"Cell Cycle",t:"Interphase",d:`Period of <span class='bkw'>continuous growth</span> before division. Phases: <span class='bkw'>G1</span>, <span class='bkw'>S</span> (DNA replication), <span class='bkw'>G2</span>.`},
+  {c:"Cell Cycle",t:"Mitosis (M-Phase)",d:`Produces two identical <span class='bkw'>diploid (2n)</span> daughter cells via <span class='bkw'>karyokinesis</span> + <span class='bkw'>cytokinesis</span>.`},
+  {c:"Cell Cycle",t:"Karyokinesis",d:`<span class='bkw'>Nuclear division</span> distributing chromosomes equally into <span class='bkw'>two daughter nuclei</span>.`},
+  {c:"Cell Cycle",t:"Cytokinesis",d:`Division of the <span class='bkw'>cytoplasm</span> via a <span class='bkw'>contractile ring of actin filaments</span>.`},
+  {c:"Cell Cycle",t:"Meiosis",d:`<span class='bkw'>Two successive nuclear divisions</span> reducing chromosomes to <span class='bkw'>haploid (1n)</span> for gamete production.`},
+  {c:"Cell Cycle",t:"Homologous Chromosomes",d:`Chromosome pairs <span class='bkw'>similar in size, shape, gene arrangement</span>. One from <span class='bkw'>mother</span>, one from <span class='bkw'>father</span>.`},
+  {c:"Cell Cycle",t:"Crossing-over",d:`<span class='bkw'>Exchange of segments</span> between homologous chromatids during <span class='bkw'>Prophase I (Pachytene)</span>. Source of <span class='bkw'>genetic variation</span>.`},
+  {c:"Cell Cycle",t:"Synapsis",d:`<span class='bkw'>Pairing of homologous chromosomes</span> into <span class='bkw'>bivalents (tetrads)</span> during <span class='bkw'>Zygotene stage</span> of Prophase I.`},
+  {c:"Molecular Biology",t:"DNA",d:`The <span class='bkw'>genetic material</span> in the <span class='bkw'>cell nucleus</span>, carrying <span class='bkw'>genetic codes</span> for cellular functions.`},
+  {c:"Molecular Biology",t:"Nucleotides",d:`<span class='bkw'>Building blocks of DNA and RNA</span>. Each has: <span class='bkw'>nitrogenous base</span>, <span class='bkw'>five-carbon sugar</span>, <span class='bkw'>phosphate group</span>.`},
+  {c:"Molecular Biology",t:"Purines",d:`Nitrogenous bases with <span class='bkw'>double-ring structure</span>: <span class='bkw'>Adenine (A)</span> and <span class='bkw'>Guanine (G)</span>.`},
+  {c:"Molecular Biology",t:"Pyrimidines",d:`Nitrogenous bases with <span class='bkw'>single-ring structure</span>: <span class='bkw'>Thymine (T)</span>, <span class='bkw'>Cytosine (C)</span> in DNA; <span class='bkw'>Uracil (U)</span> in RNA.`},
+  {c:"Taxonomy",t:"Taxonomy",d:`The science of <span class='bkw'>naming, describing, identifying, and classifying</span> organisms based on <span class='bkw'>shared characteristics</span>.`},
+  {c:"Taxonomy",t:"Binomial Nomenclature",d:`System by <span class='bkw'>Carl Linnaeus</span>. Two-part name: <span class='bkw'>Genus</span> (capitalized) + <span class='bkw'>species epithet</span> (lowercase).`},
+  {c:"Taxonomy",t:"Domain",d:`<span class='bkw'>Highest taxonomic rank</span>. Three domains: <span class='bkw'>Bacteria</span>, <span class='bkw'>Archaea</span>, <span class='bkw'>Eukarya</span>.`},
+  {c:"Taxonomy",t:"Kingdom",d:`Rank <span class='bkw'>below Domain</span>. Groups phyla with <span class='bkw'>fundamental biological traits</span> (e.g., Animalia, Protista).`},
+  {c:"Taxonomy",t:"Phylum",d:`Rank <span class='bkw'>below Kingdom, above Class</span>. Groups classes sharing a <span class='bkw'>basic body plan</span> (e.g., Protozoa, Platyhelminthes).`},
+  {c:"Taxonomy",t:"Class",d:`Groups orders with <span class='bkw'>distinct anatomical or physiological features</span> (e.g., Ciliata, Trematoda).`},
+  {c:"Taxonomy",t:"Order",d:`Rank <span class='bkw'>below Class, above Family</span>. Families with <span class='bkw'>closely related characteristics</span>.`},
+  {c:"Taxonomy",t:"Family",d:`Contains related <span class='bkw'>genera</span> with similarities in <span class='bkw'>structure, behavior, and evolution</span>.`},
+  {c:"Taxonomy",t:"Genus",d:`Ranks <span class='bkw'>above Species, below Family</span>. Groups <span class='bkw'>close species</span> (e.g., Paramecium, Fasciola).`},
+  {c:"Taxonomy",t:"Species",d:`<span class='bkw'>Fundamental unit</span> of classification. Individuals that <span class='bkw'>interbreed</span> to produce <span class='bkw'>fertile offspring</span>.`}
+];
+
+// ── BUILD DEFINITIONS CARDS ──
+(function buildDefs(){
+  const wrap=document.getElementById('bio-defs-wrap');
+  if(!wrap)return;
+  wrap.innerHTML=BIO_DEFS.map((d,i)=>`
+  <div class="qcard bi" onclick="toggle(this)">
+    <div class="q-head">
+      <div class="qnum">${i+1}</div>
+      <div class="qtext" style="direction:ltr;text-align:left">${d.d}</div>
+      <div class="qtoggle">▾</div>
+    </div>
+    <div class="q-ans">
+      <div class="ans-tag">المصطلح</div>
+      <div class="ans-body">
+        <span class="correct-pill" style="background:rgba(163,113,247,.12);border-color:rgba(163,113,247,.35);color:#a371f7;font-size:1rem;font-weight:900;direction:ltr">🔑 ${d.t}</span>
+        <span style="font-size:.75rem;color:var(--text3);margin-right:8px">${d.c}</span>
+      </div>
+    </div>
+  </div>`).join('');
+})();
+
+// ══════════════════════════════════════════
 // QUIZ ENGINE
 // ══════════════════════════════════════════
 (function initQuiz(){
@@ -2524,6 +2610,14 @@ const BIO_TF=[
       const shuffled=shuffle(m.opts);
       return {q:m.q, opts:shuffled, correct:m.a, origN:m.n};
     }
+    // DEFINITION: q=definition text, correct=term
+    if(m.t && m.d){
+      // pick 3 wrong terms randomly from BIO_DEFS
+      const others=BIO_DEFS.filter(x=>x.t!==m.t);
+      const wrongs=shuffle(others).slice(0,3).map(x=>x.t);
+      const opts=shuffle([m.t,...wrongs]);
+      return {q:m.d, opts, correct:m.t, origN:0, isDef:true};
+    }
     // T/F: build 2 options
     return {q:m.q, opts:['True — صح','False — غلط'], correct:m.a?'True — صح':'False — غلط', origN:m.n};
   }
@@ -2540,6 +2634,7 @@ const BIO_TF=[
             <option value="all">الكل (100 سؤال)</option>
             <option value="mcq">MCQ فقط (50)</option>
             <option value="tf">صح وغلط فقط (50)</option>
+            <option value="defs">التعريفات فقط (44)</option>
             <option value="rand20">20 سؤال عشوائي</option>
             <option value="rand10">10 سؤال سريع</option>
           </select>
@@ -2554,7 +2649,8 @@ const BIO_TF=[
     let pool=[];
     if(mode==='mcq') pool=BIO_MCQ.map(buildQuestions);
     else if(mode==='tf') pool=BIO_TF.map(buildQuestions);
-    else pool=[...BIO_MCQ,...BIO_TF].map(buildQuestions);
+    else if(mode==='defs') pool=BIO_DEFS.map(buildQuestions);
+    else pool=[...BIO_MCQ,...BIO_TF,...BIO_DEFS].map(buildQuestions);
     pool=shuffle(pool);
     if(mode==='rand20') pool=pool.slice(0,20);
     if(mode==='rand10') pool=pool.slice(0,10);
@@ -2575,12 +2671,12 @@ const BIO_TF=[
         <span class="qc-score">✓ ${score} صح</span>
       </div>
       <div class="quiz-q-card">
-        <div class="quiz-q-text">${q.q}</div>
+        <div class="quiz-q-text" ${q.isDef?'style="direction:ltr;text-align:left"':''}>${q.q}</div>
         <div class="quiz-opts">
           ${q.opts.map((o,i)=>`
           <button class="quiz-opt" onclick="window.__pickOpt(this,'${o.replace(/'/g,"\\'")}')">
             <span class="opt-letter">${LETTERS[i]||'●'}</span>
-            <span>${o}</span>
+            <span ${q.isDef?'style="direction:ltr"':''}>${o}</span>
           </button>`).join('')}
         </div>
         <div class="quiz-nav">
@@ -2651,4 +2747,5 @@ const BIO_TF=[
 </script>
 </body>
 </html>
+
     
