@@ -413,6 +413,15 @@ header{
 .sub-btn[data-sub="bio-tf"].active{background:linear-gradient(135deg,#064e3b,#065f46)}
 .sub-btn[data-sub="bio-defs"].active{background:linear-gradient(135deg,#4c1d95,#6d28d9)}
 .sub-btn[data-sub="bio-quiz"].active{background:linear-gradient(135deg,#7c2d12,#c2410c)}
+/* PHYSICS SUB BTNS */
+.sub-btn[data-sub="ph-fill"].active{background:linear-gradient(135deg,#164e63,#0e7490)}
+.sub-btn[data-sub="ph-choose"].active{background:linear-gradient(135deg,#0c4a6e,#0369a1)}
+.sub-btn[data-sub="ph-tf"].active{background:linear-gradient(135deg,#450a0a,#991b1b)}
+.sub-btn[data-sub="ph-essay"].active{background:linear-gradient(135deg,#713f12,#a16207)}
+.sub-btn[data-sub="ph-cmp"].active{background:linear-gradient(135deg,#4c1d95,#6d28d9)}
+.sub-btn[data-sub="ph-quiz"].active{background:linear-gradient(135deg,#7c2d12,#c2410c)}
+/* check mark on active sub-btn */
+.sub-btn.active::before{content:'✓ ';font-size:11px;opacity:.85}
 /* BIO CARDS */
 .qcard.bi .qnum{background:rgba(74,222,128,.12);color:#4ade80}
 .qcard.bi.open{border-color:rgba(74,222,128,.3)}
@@ -2287,6 +2296,7 @@ Rmax = v₀²/g = 3600/9.8 ≈ 367.3 m ✓ (الزاوية 45° تعطي أقص�
       <div class="chip"><span class="cdot" style="background:#f87171"></span>صح وخطأ — ٣٥ سؤال</div>
       <div class="chip"><span class="cdot" style="background:#fbbf24"></span>مقالي — ٣٥ سؤال</div>
       <div class="chip"><span class="cdot" style="background:#a78bfa"></span>جداول مقارنة — ٤</div>
+      <div class="chip"><span class="cdot" style="background:#fb923c"></span>اختبر نفسك — تفاعلي</div>
     </div>
   </div>
 
@@ -2296,6 +2306,7 @@ Rmax = v₀²/g = 3600/9.8 ≈ 367.3 m ✓ (الزاوية 45° تعطي أقص�
     <button class="sub-btn" data-sub="ph-tf">✅ صح وخطأ</button>
     <button class="sub-btn" data-sub="ph-essay">📝 مقالي</button>
     <button class="sub-btn" data-sub="ph-cmp">📊 جداول مقارنة</button>
+    <button class="sub-btn" data-sub="ph-quiz">🎯 اختبر نفسك</button>
   </div>
 
   <!-- FILL IN THE BLANK -->
@@ -2355,6 +2366,12 @@ Rmax = v₀²/g = 3600/9.8 ≈ 367.3 m ✓ (الزاوية 45° تعطي أقص�
       <span class="sec-count">4 جداول</span>
     </div>
     <div id="ph-cmp-wrap"></div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="section" id="ph-quiz">
+    <div class="wm">© Mahmoud Gamal El-Saeed · 01013091169 · جميع الحقوق محفوظة</div>
+    <div id="ph-quiz-root"></div>
   </div>
 
 </div><!-- /panel-phys -->
@@ -3336,6 +3353,213 @@ const PH_CMP=[
       </div>
     </div>
   </div>`).join('');
+})();
+
+// ══════════════════════════════════════════
+// PHYSICS QUIZ
+// ══════════════════════════════════════════
+(function buildPhysicsQuiz(){
+  const root=document.getElementById('ph-quiz-root');
+  if(!root)return;
+
+  // Build MCQ pool from PH_FILL, PH_CHOOSE, PH_TF
+  const POOL_FILL=PH_FILL.map(m=>({
+    q:m.q,
+    opts:shuffle([m.a, getFakeOpts(m.a)[0], getFakeOpts(m.a)[1], getFakeOpts(m.a)[2]]),
+    correct:m.a,
+    type:'fill'
+  }));
+
+  const POOL_TF=PH_TF.map(m=>({
+    q:m.q,
+    opts:['✓ صح','✗ خطأ'],
+    correct:m.a?'✓ صح':'✗ خطأ',
+    type:'tf'
+  }));
+
+  // Build from PH_CHOOSE (already has MCQ structure from JS array)
+  const POOL_CHOOSE=(typeof PH_CHOOSE!=='undefined'?PH_CHOOSE:[]).map(m=>({
+    q:m.q,
+    opts:shuffle([m.a, ...getFakeChooseOpts(m.a)].slice(0,4)),
+    correct:m.a,
+    type:'choose'
+  }));
+
+  function getFakeOpts(correct){
+    // Generate plausible wrong answers based on physics context
+    const wrongs=[
+      ['القوة','الضغط','الكثافة','الطاقة','الشغل','السرعة','التسارع','الزمن'],
+      ['N/m²','Pa.s','kg/m³','J','W','N','m/s','rad'],
+      ['طردياً','عكسياً','تناسب مربع','لا علاقة'],
+      ['المرونة الطولية','المرونة الحجمية','المرونة القصية','اللزوجة'],
+      ['الانعكاس','الانكسار','الحيود','التداخل'],
+      ['الكلفن','الفهرنهايت','المئوي','الرانكين'],
+    ];
+    const pool=wrongs[Math.floor(Math.random()*wrongs.length)].filter(x=>x!==correct);
+    return shuffle(pool).slice(0,3);
+  }
+
+  function getFakeChooseOpts(correct){
+    return ['ثابت','تتناسب طردياً','تتناسب عكسياً','لا تتغير','تزداد','تنقص']
+      .filter(x=>x!==correct).slice(0,3);
+  }
+
+  function shuffle(arr){
+    const a=[...arr];
+    for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+    return a;
+  }
+
+  const LETTERS=['أ','ب','ج','د'];
+  let questions=[], idx=0, score=0, userAnswers=[];
+
+  function buildPhQuizPool(){
+    // Rebuild pool with shuffled opts each time
+    const fillQ=PH_FILL.map(m=>{
+      const wrong1=PH_FILL[Math.floor(Math.random()*PH_FILL.length)].a;
+      const wrong2=PH_FILL[Math.floor(Math.random()*PH_FILL.length)].a;
+      const wrong3=PH_FILL[Math.floor(Math.random()*PH_FILL.length)].a;
+      const opts=shuffle([m.a,wrong1===m.a?'الخيار خطأ':wrong1,wrong2===m.a?'غير صحيح':wrong2,wrong3===m.a?'لا شيء مما سبق':wrong3]);
+      return {q:m.q,opts,correct:m.a};
+    });
+    const tfQ=PH_TF.map(m=>({
+      q:m.q,
+      opts:['✓ صح','✗ خطأ'],
+      correct:m.a?'✓ صح':'✗ خطأ'
+    }));
+    return shuffle([...fillQ,...tfQ]);
+  }
+
+  function showStart(){
+    idx=0;score=0;userAnswers=[];
+    root.innerHTML=`
+    <div class="quiz-wrap">
+      <div class="quiz-start">
+        <div style="font-size:2.8rem;margin-bottom:12px">⚛</div>
+        <h2 style="font-family:'Tajawal',sans-serif;font-size:1.5rem;font-weight:900;color:#22d3ee;margin-bottom:8px">اختبر نفسك — الفيزياء</h2>
+        <p style="color:#94a3b8;font-size:14px;margin-bottom:24px">أسئلة من شيت الفيزياء كامل — مرونة · موائع · ضوء · حرارة</p>
+        <div class="quiz-settings" style="margin-bottom:24px">
+          <label style="display:block;margin-bottom:8px;color:#cbd5e1;font-size:13px">اختار عدد الأسئلة:</label>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+            ${[10,20,35,50,'الكل'].map(n=>`
+            <button class="qcount-btn" onclick="window.__phSetCount(${n==='الكل'?999:n},this)"
+              style="background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3);
+              border-radius:10px;padding:10px 18px;color:#22d3ee;font-family:'Cairo',sans-serif;
+              font-size:14px;font-weight:700;cursor:pointer;transition:all .2s">
+              ${n}
+            </button>`).join('')}
+          </div>
+        </div>
+        <button class="btn-start-quiz" id="ph-start-btn" onclick="window.__phStartQuiz()"
+          style="background:linear-gradient(135deg,#0e7490,#22d3ee);border:none;border-radius:12px;
+          padding:14px 40px;color:#fff;font-family:'Tajawal',sans-serif;font-size:16px;
+          font-weight:900;cursor:pointer;box-shadow:0 4px 20px rgba(34,211,238,.3);transition:all .2s">
+          🚀 ابدأ الاختبار
+        </button>
+        <div id="ph-count-info" style="margin-top:12px;color:#64748b;font-size:13px">لم تختار عدد الأسئلة بعد</div>
+      </div>
+    </div>`;
+    window.__phCount=10;
+  }
+
+  window.__phSetCount=function(n,el){
+    window.__phCount=n;
+    document.querySelectorAll('.qcount-btn').forEach(b=>{
+      b.style.background='rgba(34,211,238,.1)';b.style.borderColor='rgba(34,211,238,.3)';
+    });
+    el.style.background='rgba(34,211,238,.25)';el.style.borderColor='rgba(34,211,238,.7)';
+    const info=document.getElementById('ph-count-info');
+    if(info)info.textContent=`✓ تم اختيار ${n===999?'كل الأسئلة':n+' سؤال'}`;
+  };
+
+  window.__phStartQuiz=function(){
+    const allQ=buildPhQuizPool();
+    const n=window.__phCount||10;
+    questions=allQ.slice(0,Math.min(n,allQ.length));
+    idx=0;score=0;userAnswers=[];
+    showPhQuestion();
+  };
+
+  function showPhQuestion(){
+    if(idx>=questions.length){showPhResult();return;}
+    const q=questions[idx];
+    const pct=Math.round((idx/questions.length)*100);
+    root.innerHTML=`
+    <div class="quiz-wrap">
+      <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${pct}%;background:linear-gradient(90deg,#0e7490,#22d3ee)"></div></div>
+      <div class="quiz-counter">
+        <span class="qc-num">سؤال ${idx+1} من ${questions.length}</span>
+        <span class="qc-score" style="color:#22d3ee">✓ ${score} صح</span>
+      </div>
+      <div class="quiz-q-card">
+        <div class="quiz-q-text">${q.q}</div>
+        <div class="quiz-opts">
+          ${q.opts.map((o,i)=>`
+          <button class="quiz-opt" onclick="window.__phPickOpt(this,'${o.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">
+            <span class="opt-letter" style="background:rgba(34,211,238,.15);color:#22d3ee">${LETTERS[i]||'●'}</span>
+            <span>${o}</span>
+          </button>`).join('')}
+        </div>
+        <div class="quiz-nav">
+          <button class="btn-next" id="ph-btn-next" onclick="window.__phNextQ()">${idx===questions.length-1?'🏁 عرض النتيجة':'التالي ←'}</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  window.__phPickOpt=function(el,chosen){
+    document.querySelectorAll('.quiz-opt').forEach(b=>b.classList.add('disabled'));
+    const q=questions[idx];
+    const isCorrect=chosen===q.correct;
+    document.querySelectorAll('.quiz-opt').forEach(b=>{
+      const txt=b.querySelector('span:last-child').textContent;
+      if(txt===q.correct)b.classList.add('correct');
+    });
+    if(!isCorrect)el.classList.add('wrong');
+    if(isCorrect)score++;
+    userAnswers.push({q:q.q,chosen,correct:q.correct,ok:isCorrect});
+    const nb=document.getElementById('ph-btn-next');
+    if(nb)nb.classList.add('show');
+  };
+
+  window.__phNextQ=function(){idx++;showPhQuestion();};
+
+  function showPhResult(){
+    const total=questions.length;
+    const wrong=total-score;
+    const pct=Math.round((score/total)*100);
+    const emoji=pct>=90?'🏆':pct>=70?'🎉':pct>=50?'💪':'📚';
+    const label=pct>=90?'ممتاز! أنت جاهز':pct>=70?'كويس جداً':pct>=50?'مقبول — ذاكر أكتر':'محتاج مراجعة';
+    const reviewHTML=userAnswers.map((a,i)=>`
+    <div class="rev-item ${a.ok?'rev-ok':'rev-bad'}">
+      <div class="rev-q">${i+1}. ${a.q.replace(/<[^>]+>/g,'')}</div>
+      ${!a.ok?`<div class="rev-your" style="color:#f87171">❌ إجابتك: ${a.chosen}</div>`:''}
+      <div class="rev-ans">✓ الصح: ${a.correct}</div>
+    </div>`).join('');
+    root.innerHTML=`
+    <div class="quiz-wrap">
+      <div class="quiz-result">
+        <div style="font-size:3rem">${emoji}</div>
+        <div class="res-score" style="color:${pct>=70?'#4ade80':'#f87171'}">${pct}%</div>
+        <div class="res-label">${label}</div>
+        <div class="res-stats">
+          <div class="res-stat"><span class="res-correct">${score}</span>إجابات صح</div>
+          <div class="res-stat"><span class="res-wrong">${wrong}</span>إجابات غلط</div>
+          <div class="res-stat"><span style="color:#22d3ee">${total}</span>إجمالي الأسئلة</div>
+        </div>
+        <button class="btn-retry" style="background:linear-gradient(135deg,#0e7490,#22d3ee)" onclick="window.__phStartQuiz()">🔄 إعادة الاختبار بنفس الإعدادات</button>
+        &nbsp;
+        <button class="btn-retry" style="background:linear-gradient(135deg,#14532d,#15803d)" onclick="window.__phBackToStart()">⚙ تغيير الإعدادات</button>
+        <div class="quiz-review">
+          <h3>📋 مراجعة الإجابات (${wrong} غلط)</h3>
+          ${wrong===0?'<p style="color:#4ade80;text-align:center;padding:20px">🎯 كل الإجابات صح!</p>':reviewHTML}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  window.__phBackToStart=function(){showStart();};
+  showStart();
 })();
 
 </script>
